@@ -63,6 +63,7 @@ local function navigate(screen, focus)
     save()
   end
   if screen == "themes" then
+    State.colors_preview = State.theme
     State.theme_return = { screen = State.screen, focus = State.focus }
   end
   State.screen, State.focus = screen, focus

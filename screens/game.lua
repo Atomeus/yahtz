@@ -148,16 +148,21 @@ function GameScreen.draw(state, navigate, save, offer_high_score)
       if cell ~= 0 then objective_board[cell] = view.dice[die] end
     end
     if tentative then objective_board[target] = view.dice[state.selected] end
-    text("Board: rows =20 " .. Objectives.board_progress(objective_board) .. "/3 +50 ?", 24, 235, colors.secondary)
-    text("Turn: " .. Objectives.label(view.objectives.active) .. " ?", 24, 247, colors.secondary)
+    local function event_color(id)
+      local highlighted = state.pointer_mode and state.hover == id
+        or not state.pointer_mode and state.focus == id
+      return highlighted and colors.accent or colors.secondary
+    end
+    text("Board: rows =20 " .. Objectives.board_progress(objective_board) .. "/3 +50 ?", 24, 235, event_color(43))
+    text("Turn: " .. Objectives.label(view.objectives.active) .. " ?", 24, 247, event_color(44))
     button(43, 24, 232, 198, 12, nil, function()
       sound("click")
       state.event_info, state.focus = "board", 45
-    end)
+    end, true, false)
     button(44, 24, 244, 198, 12, nil, function()
       sound("click")
       state.event_info, state.focus = "turn", 45
-    end)
+    end, true, false)
   end
   for line = 1, 5 do
     local marked = view.objectives and view.objectives.active.line
@@ -210,7 +215,7 @@ function GameScreen.draw(state, navigate, save, offer_high_score)
   end
   if locked then
     if view.objectives then
-      text((input.mapping_for(input.BTN3) or "?") .. ": speed through", 242, 249, colors.secondary)
+      text((input.mapping_for(input.BTN3) or "?") .. ": speed through", 242, 245, colors.secondary)
     end
     if not view.objectives then text((input.mapping_for(input.BTN1) or "?") .. ": select  " .. (input.mapping_for(input.BTN3) or "?") .. ": skip / Esc: menu", 24, 243, colors.secondary) end
     local rows, columns = false, false
@@ -264,11 +269,11 @@ function GameScreen.draw(state, navigate, save, offer_high_score)
     else state.message = err end
   end, view.phase == "placing" and all_placed)
   if state.message then
-    text(tostring(state.message):sub(1, 33), view.objectives and 242 or 24, view.objectives and 249 or 243, colors.accent)
+    text(tostring(state.message):sub(1, 33), view.objectives and 242 or 24, view.objectives and 245 or 243, colors.accent)
   elseif not view.objectives then
     text((input.mapping_for(input.BTN1) or "?") .. ": select  " .. (input.mapping_for(input.BTN2) or "?") .. ": undo  Esc: menu", 24, 243, colors.secondary)
   else
-    text((input.mapping_for(input.BTN1) or "?") .. ": select  " .. (input.mapping_for(input.BTN2) or "?") .. ": undo", 242, 249, colors.secondary)
+    text((input.mapping_for(input.BTN1) or "?") .. ": select  " .. (input.mapping_for(input.BTN2) or "?") .. ": undo", 242, 245, colors.secondary)
   end
 end
 

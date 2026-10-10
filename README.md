@@ -137,6 +137,10 @@ board unlocks Midnight at 200 points, Plum Velvet at 300, and Golden Hour at 400
 Requirements include joker points and do not depend on saving a leaderboard name.
 Locked colors show their required score. The preview
 shows the selected table, dice, and score colors; selection saves automatically.
+Hover any theme, or focus it with directional controls, to preview its colors
+without equipping it. Locked themes can also be clicked to keep their preview
+visible; they remain locked and show their required score. Clicking an available
+theme equips and saves it. Leaving the screen keeps your equipped colors.
 The choice applies across menus, gameplay, name entry, and score animation.
 Older or unknown saved theme IDs fall back to Classic.
 

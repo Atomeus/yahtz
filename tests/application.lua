@@ -8,6 +8,7 @@ end
 local saved, pressed, mouse_click, mx, my
 local labels, rectangles, score_labels = {}, {}, {}
 local text_positions = {}
+local fills = {}
 local function noop() end
 gfx = setmetatable({
   text = function(value, x, y)
@@ -16,7 +17,8 @@ gfx = setmetatable({
   end,
   text_ex = function(value) score_labels[#score_labels + 1] = value end,
   rect = function(x, y, w, h, color) rectangles[#rectangles + 1] = {x, y, w, h, color} end,
-  rect_fill = noop, clear = noop,
+  rect_fill = function(x, y, w, h, color) fills[#fills + 1] = {x, y, w, h, color} end,
+  clear = noop,
 }, {__index = function(_, key)
   assert(key:match("^COLOR_"), "Unexpected drawing API: " .. key)
   return key
@@ -41,6 +43,7 @@ require("main")
 local function draw()
   labels, rectangles, score_labels = {}, {}, {}
   text_positions = {}
+  fills = {}
   _draw()
 end
 local function tick(dt)
@@ -246,11 +249,36 @@ for _, item in ipairs(text_positions) do
     assert(contained, item.value .. " must fit inside its theme box at the engine's 16px line height")
   end
 end
+local before_preview = copy(saved)
+mx, my = 40, 114
+tick()
+assert(has_label("Midnight") and has_label("LOCKED: 200 POINTS"))
+assert(same(saved, before_preview), "Hover previews must not save or equip a theme")
 click(40, 114)
 assert(State.theme == "classic" and saved.theme == "classic")
+assert(State.colors_preview == "midnight" and has_label("Preview only - stays locked"))
 key(input.DOWN)
 key(input.BTN1)
-assert(State.theme == "classic", "Directional navigation must skip locked colors")
+assert(State.theme == "classic" and State.colors_preview == "plum",
+  "Directional navigation previews locked colors without equipping them")
+local Themes = require("ui.themes")
+for index, theme in ipairs(Themes.options) do
+  if index == 5 or index == 9 then click(420, 50) end
+  click(40, 76 + ((index - 1) % 4) * 38)
+  assert(has_label(theme.name) and has_label(theme.description))
+  assert(State.theme == "classic" and saved.theme == "classic")
+  assert(not State.owned_colors[theme.id] or theme.id == "classic")
+  local felt = false
+  for _, rect in ipairs(fills) do
+    if rect[1] == 264 and rect[2] == 70 and rect[5] == theme.table then felt = true end
+  end
+  assert(felt, "The preview must render the selected theme's felt")
+  assert(Themes.colors().id == "classic", "Preview drawing must restore the equipped palette")
+end
+click(40, 250)
+assert(State.theme == "classic" and has_label("HIGH SCORES"))
+click(330, 80)
+assert(State.colors_preview == "classic", "Reopening Colors starts with the equipped theme")
 -- Credit a legacy record, then keep the remaining lifecycle fixtures independent of ranking.
 saved = {high_scores = {{name = "LEGACY", score = 400}}}
 boot()
