@@ -1,6 +1,6 @@
 # Spatial first playable
 
-Status: claimed
+Status: resolved
 
 ## Agreed scope
 
@@ -61,3 +61,7 @@ The first playable is complete when a player can choose a joker, finish a five-t
 
 Implementation authorized by the user; scoring and game-session test boundaries confirmed.
 
+
+## Answer
+
+Implemented all three tickets on `integration/spatial-first-playable`. Scoring and session domain tests pass, including deterministic resume, atomic confirmation and five-turn results. A complete-board engine-adapter smoke passed; actual Usagi 1.2.0 launch, joker selection and gameplay were visually checked without runtime errors. Physical gamepad hardware remains untested. Controls and persistence are documented in README.md. See the [completed ticket map](map.md#decisions-so-far).

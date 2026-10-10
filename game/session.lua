@@ -6,14 +6,14 @@ local function copy(value)
   for key, item in pairs(value) do out[key] = copy(item) end
   return out
 end
-local function face(state)
+local function roll_face(state)
   state.rng = (state.rng * 16807) % 2147483647
   return state.rng % 6 + 1
 end
 local function initial_roll(state)
   state.dice, state.held, state.placements = {}, {}, {}
   for i = 1, 5 do
-    state.dice[i], state.held[i], state.placements[i] = face(state), false, 0
+    state.dice[i], state.held[i], state.placements[i] = roll_face(state), false, 0
   end
   state.rolls_used, state.phase = 1, "rolling"
 end
@@ -39,7 +39,7 @@ end
 function Session:roll()
   local s = self.state
   if s.phase ~= "rolling" or s.rolls_used >= 3 then return nil, "No rolls available" end
-  for i = 1, 5 do if not s.held[i] then s.dice[i] = face(s) end end
+  for i = 1, 5 do if not s.held[i] then s.dice[i] = roll_face(s) end end
   s.rolls_used = s.rolls_used + 1
   return true
 end

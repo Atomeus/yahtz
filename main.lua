@@ -26,7 +26,7 @@ local function text(value, x, y, color)
   gfx.text(tostring(value), x, y, color or gfx.COLOR_WHITE)
 end
 
-local function die(face, x, y, size, selected, fixed)
+local function draw_die(face, x, y, size, selected, fixed)
   gfx.rect_fill(x + 2, y + 3, size, size, gfx.COLOR_DARK_BLUE)
   gfx.rect_fill(x, y, size, size, selected and gfx.COLOR_YELLOW or (fixed and gfx.COLOR_LIGHT_GRAY or gfx.COLOR_PEACH))
   gfx.rect(x, y, size, size, gfx.COLOR_BROWN)
@@ -73,13 +73,17 @@ local function button(id, x, y, w, h, label, callback, enabled)
   end
 end
 
+local function scroll_ledger(delta, event_count, visible_count)
+  State.ledger_offset = math.max(1, math.min(math.max(1, event_count - visible_count + 1), State.ledger_offset + delta))
+end
+
 local function move_focus(dx, dy)
   local current
-  for _, b in ipairs(State.buttons) do if b.id == State.focus then current = b end end
-  if not current then State.focus = State.buttons[1] and State.buttons[1].id or 1; return end
+  for _, b in ipairs(State.buttons or {}) do if b.id == State.focus then current = b end end
+  if not current then State.focus = State.buttons and State.buttons[1] and State.buttons[1].id or 1; return end
   local cx, cy = current.x + current.w / 2, current.y + current.h / 2
   local best, distance
-  for _, b in ipairs(State.buttons) do
+  for _, b in ipairs(State.buttons or {}) do
     local vx, vy = b.x + b.w / 2 - cx, b.y + b.h / 2 - cy
     local along, across = vx * dx + vy * dy, math.abs(vx * dy - vy * dx)
     local score = along + across * 3
@@ -96,7 +100,7 @@ function _update(dt)
   if input.pressed(input.DOWN) then move_focus(0, 1) end
   local mx, my = input.mouse()
   local click = input.mouse_pressed(input.MOUSE_LEFT)
-  for _, b in ipairs(State.buttons) do
+  for _, b in ipairs(State.buttons or {}) do
     local hit = click and mx >= b.x and mx < b.x + b.w and my >= b.y and my < b.y + b.h
     if b.enabled and (hit or (b.id == State.focus and input.pressed(input.BTN1))) then
       State.focus = b.id
@@ -127,7 +131,7 @@ local function draw_jokers()
     for col = 0, 4 do
       local x, y = 27 + col * 35, 68 + row * 35
       gfx.rect_fill(x, y, 31, 31, gfx.COLOR_DARK_BLUE)
-      if row == col or row + col == 4 then die((row + col) % 6 + 1, x + 2, y + 2, 26, false) end
+      if row == col or row + col == 4 then draw_die((row + col) % 6 + 1, x + 2, y + 2, 26, false) end
     end
   end
   text("FIVE TURNS. TEN LINES.", 26, 242, gfx.COLOR_PEACH)
@@ -182,7 +186,7 @@ local function draw_game()
     for i = 1, 5 do if view.placements[i] == cell then current = i end end
     local face = view.board[cell]
     if current then face = view.dice[current] end
-    if face and face > 0 then die(face, x + 3, y + 3, 28, current == State.selected, not current) end
+    if face and face > 0 then draw_die(face, x + 3, y + 3, 28, current == State.selected, not current) end
     button(cell, x, y, 35, 35, nil, function()
       if current then State.selected = current; act("unplace", current)
       else
@@ -197,7 +201,7 @@ local function draw_game()
   local bounce = not State.reduced_motion and State.bounce and math.max(0, 1 - (State.time - State.bounce) * 5) * 3 or 0
   for i = 1, 5 do
     local x, y = 242 + (i - 1) * 44, 61 - math.floor(bounce)
-    die(view.dice[i], x, y, 32, State.selected == i, view.placements[i] ~= 0)
+    draw_die(view.dice[i], x, y, 32, State.selected == i, view.placements[i] ~= 0)
     button(25 + i, x, y, 32, 32, nil, function()
       State.selected = i
       if view.phase == "rolling" then act("toggle_hold", i) end
@@ -209,8 +213,8 @@ local function draw_game()
     text((input.mapping_for(input.BTN1) or "?") .. ": select  " .. (input.mapping_for(input.BTN3) or "?") .. ": skip / Esc: menu", 24, 243, gfx.COLOR_PEACH)
     text(view.phase == "results" and "BOARD COMPLETE!" or "COUNTING THE TABLE", 242, 118, gfx.COLOR_YELLOW)
     draw_ledger(view.phase == "results" and State.ledger or State.events, 242, 138, 6, view.phase == "resolving" and State.event_index or nil)
-    button(31, 242, 214, 102, 19, "Earlier", function() State.ledger_offset = math.max(1, State.ledger_offset - 1) end)
-    button(32, 350, 214, 110, 19, "Later", function() State.ledger_offset = math.min(math.max(1, #(view.phase == "results" and State.ledger or State.events) - 5), State.ledger_offset + 1) end)
+    button(31, 242, 214, 102, 19, "Earlier", function() scroll_ledger(-1, #(view.phase == "results" and State.ledger or State.events), 6) end)
+    button(32, 350, 214, 110, 19, "Later", function() scroll_ledger(1, #(view.phase == "results" and State.ledger or State.events), 6) end)
     button(33, 242, 237, 218, 18, view.phase == "results" and "Play again" or "Speed through", function()
       if view.phase == "results" then State.session = nil; State.screen = "jokers"; State.focus = 1; save()
       else finish_scoring() end
@@ -226,8 +230,8 @@ local function draw_game()
   button(35, 345, 151, 115, 18, "Undo", function() act("undo") end)
   local preview = State.session:preview()
   text("PREVIEW", 242, 178, gfx.COLOR_YELLOW)
-  button(38, 350, 175, 50, 11, "Prev", function() State.ledger_offset = math.max(1, State.ledger_offset - 1) end)
-  button(39, 405, 175, 55, 11, "Next", function() State.ledger_offset = math.min(math.max(1, #preview.events - 2), State.ledger_offset + 1) end)
+  button(38, 350, 175, 50, 11, "Prev", function() scroll_ledger(-1, #preview.events, 3) end)
+  button(39, 405, 175, 55, 11, "Next", function() scroll_ledger(1, #preview.events, 3) end)
   if preview then
     draw_ledger(preview.events, 242, 191, 3)
     text("Result: " .. tostring(preview.total), 242, 228, gfx.COLOR_PEACH)
