@@ -89,11 +89,19 @@ function Session:undo()
 end
 
 local Scoring = require("scoring")
-function Session:preview()
+function Session:preview(die, cell)
   local s = self.state
   local board = copy(s.board)
   for i = 1, 5 do
     if s.placements[i] ~= 0 then board[s.placements[i]] = s.dice[i] end
+  end
+  -- A hypothetical die uses the same eligibility as placement, without history or RNG.
+  if die ~= nil or cell ~= nil then
+    if s.phase ~= "placing" or not s.dice[die] or s.placements[die] ~= 0
+      or type(cell) ~= "number" or cell % 1 ~= 0 or board[cell] ~= 0 then
+      return nil, "Choose an unplaced die and empty cell"
+    end
+    board[cell] = s.dice[die]
   end
   local result = {lines = {}, events = {}, turn_bonus = 0, total = s.score, points = 0}
   if s.phase ~= "placing" then return result end

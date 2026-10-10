@@ -14,7 +14,7 @@ Use **Motion** on the main menu to switch between short dice bounces and reduced
 
 The game saves automatically when choosing a joker and confirming a turn. Returning during an unfinished turn restores its original dice and consumables, discarding unconfirmed rerolls, placements and Adjustments. Repeating the same actions produces the same dice. A completed board resumes at its results screen. Motion preference and score history are saved too.
 
-Run the domain tests with `python tools/test.py` (requires `lupa`) if that test runner is present in your checkout.
+Run all tests with `usagi run test.lua`. It prints each result and closes automatically when all suites pass. On failure, the window stays open and the console shows the error. No Python or separate Lua installation is required.
 
 Completed boards that qualify for the top five offer optional name entry using an on-screen keyboard, accessible with mouse or remappable direction/select actions. Names allow up to 12 letters, digits, or spaces; a blank name saves as PLAYER. Save score records the play once, or Skip dismisses the offer. Scores persist across boards and restarts. Equal scores keep the earlier entry first; when five entries exist, a new score must beat fifth place.
 
@@ -28,7 +28,7 @@ and sound helpers live in ui/drawing.lua. Joker presentation data lives in
 game/jokers.lua. Scoring, game sessions, and high-score ranking remain separate
 domain modules.
 
-Run python tools/test.py to execute the domain suites and the application
+Run `usagi run test.lua` to execute the domain suites and the application
 lifecycle integration test. The latter simulates input and persistence through
 the engine callbacks; visual rendering and physical gamepad behavior still
 require a check in Usagi.
@@ -58,3 +58,21 @@ Select the joker name to read its rules and an example, then **Back to game**
 (or the undo/back action) to close. Scoring pauses while reading. The Motion
 preference is available on the main menu, keeping gameplay controls focused
 on the board.
+
+On the placement-feedback experiment, hover an empty cell with a selected READY
+die, or move directional focus onto it, to outline its row and column. **IF PLACED**
+shows the hypothetical completed lines and resulting total, including dice already
+arranged this turn. The question-mark die is tentative; selecting the cell places
+it. Moving keyboard/gamepad focus takes over from a stationary mouse pointer.
+
+Confirmed lines sweep across rows or down columns, then send their points toward
+the total. Each line pays its base category before its joker bonus; the joker name
+is outlined during its contribution. Thrifty has a separate unused-roll label.
+A row-and-column payout gets a shared announcement while each contribution resolves
+separately. Reduced motion uses static cell outlines, payout labels, and immediate
+per-event totals. **Speed through** still finishes the entire sequence immediately.
+
+Background music is Vaporware by The Cynic Project (CC0; see music/CREDITS.txt).
+It loops continuously across screens at 16% track volume, gently ducking to 8%
+during gameplay score payouts. The pause menu music slider adjusts or mutes it
+independently of sound effects.

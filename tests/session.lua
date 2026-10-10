@@ -94,3 +94,37 @@ for turn = 1, 5 do
 end
 assert(line_count == 10)
 print("session five-turn results, consumables, and score-once passed")
+
+-- Tentative placement closes both directions, includes arranged dice, and changes nothing.
+local candidate = Session.new("pair_pay", 1):view()
+candidate.phase, candidate.turn, candidate.score = "placing", 3, 80
+candidate.dice = {2, 2, 3, 4, 5}
+for _, cell in ipairs({1, 2, 3, 4, 10, 15, 20}) do candidate.board[cell] = 2 end
+local hypothetical = Session.resume(candidate)
+assert(hypothetical:place(2, 25))
+local before, boundary, history = hypothetical:view(), hypothetical:snapshot(), #hypothetical.history
+local prediction = assert(hypothetical:preview(1, 5))
+assert(#prediction.lines == 2 and prediction.lines[1].id == "row1" and prediction.lines[2].id == "column5")
+assert(prediction.events[1].kind == "line" and prediction.events[2].kind == "joker")
+assert(prediction.events[3].line == "column5" and prediction.events[4].kind == "joker")
+assert(prediction.points == 120 and prediction.total == 200)
+local function equal(a, b)
+  if type(a) ~= type(b) then return false end
+  if type(a) ~= "table" then return a == b end
+  for k, v in pairs(a) do if not equal(v, b[k]) then return false end end
+  for k in pairs(b) do if a[k] == nil then return false end end
+  return true
+end
+assert(equal(hypothetical:view(), before) and equal(hypothetical:snapshot(), boundary))
+assert(#hypothetical.history == history)
+for _, target in ipairs({0, 26, 1.5, 1, 25}) do assert(not hypothetical:preview(1, target)) end
+assert(not hypothetical:preview(2, 5) and not hypothetical:preview(8, 5))
+assert(hypothetical:undo() and hypothetical:view().placements[2] == 0)
+candidate.scored_lines.row1 = true
+local already_scored = Session.resume(candidate)
+assert(already_scored:place(2, 25))
+local remaining = already_scored:preview(1, 5)
+assert(#remaining.lines == 1 and remaining.lines[1].id == "column5")
+local rolling_preview = Session.new("thrifty", 1)
+assert(not rolling_preview:preview(1, 1))
+print("hypothetical preview, both directions, eligibility, score-once and non-mutation passed")

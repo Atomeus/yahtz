@@ -6,16 +6,19 @@ local function copy(value)
   return result
 end
 local saved, pressed, mouse_click, mx, my
-local labels = {}
+local labels, rectangles, score_labels = {}, {}, {}
 local function noop() end
 gfx = setmetatable({
   text = function(value) labels[#labels + 1] = value end,
-  text_ex = noop, rect = noop, rect_fill = noop, clear = noop,
+  text_ex = function(value) score_labels[#score_labels + 1] = value end,
+  rect = function(x, y, w, h, color) rectangles[#rectangles + 1] = {x, y, w, h, color} end,
+  rect_fill = noop, clear = noop,
 }, {__index = function(_, key)
   assert(key:match("^COLOR_"), "Unexpected drawing API: " .. key)
   return key
 end})
 sfx = {play_ex = noop}
+music = {play_ex = noop, mutate = noop}
 input = {
   LEFT = "left", RIGHT = "right", UP = "up", DOWN = "down",
   BTN1 = "select", BTN2 = "undo", BTN3 = "skip", MOUSE_LEFT = "mouse",
@@ -32,7 +35,7 @@ usagi = {
 }
 require("main")
 local function draw()
-  labels = {}
+  labels, rectangles, score_labels = {}, {}, {}
   _draw()
 end
 local function tick(dt)
@@ -115,6 +118,14 @@ local function complete_board()
     assert(State.session:view().phase == "resolving")
     assert(saved.session.phase == (turn == 5 and "results" or "rolling"))
     if turn == 1 then
+      local event = State.events[1]
+      assert(has_label("+" .. event.points), "Active payout must be visible even with reduced motion")
+      assert(score_labels[1] == tostring(event.points) .. " POINTS", "Reduced motion shows the current payout immediately")
+      local highlighted = false
+      for _, rect in ipairs(rectangles) do
+        if rect[1] == 42 and rect[2] == 53 and rect[3] == 35 and rect[5] == require("ui.themes").colors().accent then highlighted = true end
+      end
+      assert(highlighted, "Completed line cells must be highlighted")
       inspect_joker()
       change_theme_in_game()
       for _ = 1, 20 do
@@ -168,6 +179,25 @@ click(180, 110) -- Continue discards unconfirmed actions on reload.
 assert(table.concat(State.session:view().dice, ",") == original)
 assert(not State.session:view().held[1] and State.reduced_motion)
 click(365, 120)
+-- Hover previews are distinct from committed scoring and directional focus takes over.
+local live, boundary, undo_count = State.session:view(), State.session:snapshot(), #State.session.history
+mx, my = 50, 60
+tick()
+assert(has_label("IF PLACED"))
+mx, my = 475, 265
+tick()
+assert(not has_label("IF PLACED"), "Leaving the board clears pointer preview")
+mx, my = 50, 60
+tick()
+assert(same(live, State.session:view()) and same(boundary, State.session:snapshot()))
+assert(#State.session.history == undo_count)
+State.focus = 1
+key(input.RIGHT)
+assert(State.focus == 2 and not State.pointer_mode and has_label("IF PLACED"))
+key(input.BTN1)
+assert(State.session:view().placements[1] == 2)
+key(input.BTN2)
+assert(State.session:view().placements[1] == 0)
 click(300, 158) -- Adjustment.
 assert(State.session:view().adjustments == 1)
 click(50, 60) -- Preserve an unconfirmed placement and its undo history too.

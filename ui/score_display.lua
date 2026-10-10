@@ -1,6 +1,6 @@
 local Themes = require("ui.themes")
 local ScoreDisplay = {}
-local COUNT_DURATION = 0.65
+local Feedback = require("ui.scoring_feedback")
 
 function ScoreDisplay.draw(state, view)
   local colors = Themes.colors()
@@ -11,8 +11,9 @@ function ScoreDisplay.draw(state, view)
       score = score - state.events[i].points
     end
     local event = state.events[state.event_index]
+    if event and state.reduced_motion then score = score + event.points end
     if event and not state.reduced_motion then
-      local progress = math.min(1, state.event_timer / COUNT_DURATION)
+      local progress = math.min(1, math.max(0, state.event_timer - Feedback.count_start) / Feedback.count_duration)
       local eased = 1 - (1 - progress) ^ 3
       score = score + math.floor(event.points * eased)
       if event.points > 0 then

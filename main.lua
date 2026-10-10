@@ -1,3 +1,4 @@
+local Music = require("ui.music")
 local Themes = require("ui.themes")
 local ThemeSelection = require("screens.theme_selection")
 local HighScores = require("game.high_scores")
@@ -17,6 +18,7 @@ local function save()
 end
 
 function _init()
+  Music.start()
   local saved = usagi.load() or {}
   State = { theme = Themes.get(saved.theme).id, screen = "menu", focus = 1, time = 0, reduced_motion = saved.reduced_motion or false, selected = 1, buttons = {}, events = {}, event_index = 1, event_timer = 0, ledger_offset = 1, ledger = saved.ledger or {}, high_scores = saved.high_scores or {}, high_score_handled = saved.high_score_handled or false }
   if saved.session then
@@ -69,6 +71,7 @@ end
 
 function _update(dt)
   State.time = State.time + dt
+  Music.update(dt, State.screen == "game" and State.session ~= nil and State.session:view().phase == "resolving")
   Controls.update(State)
   if State.session and State.screen == "game" then
     GameScreen.update(State, dt, save, offer_high_score)

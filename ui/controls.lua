@@ -38,6 +38,19 @@ function Controls.update(state)
   if input.pressed(input.UP) then move_focus(state, 0, -1) end
   if input.pressed(input.DOWN) then move_focus(state, 0, 1) end
   local mx, my = input.mouse()
+  if mx ~= state.pointer_x or my ~= state.pointer_y then state.pointer_mode = true end
+  state.pointer_x, state.pointer_y = mx, my
+  if input.pressed(input.LEFT) or input.pressed(input.RIGHT) or input.pressed(input.UP)
+    or input.pressed(input.DOWN) or input.pressed(input.BTN1) then state.pointer_mode = false end
+  state.hover = nil
+  if state.pointer_mode then
+    for _, b in ipairs(state.buttons or {}) do
+      if b.enabled and mx >= b.x and mx < b.x + b.w and my >= b.y and my < b.y + b.h then
+        state.hover = b.id
+        break
+      end
+    end
+  end
   local click = input.mouse_pressed(input.MOUSE_LEFT)
   for _, b in ipairs(state.buttons or {}) do
     local hit = click and mx >= b.x and mx < b.x + b.w and my >= b.y and my < b.y + b.h

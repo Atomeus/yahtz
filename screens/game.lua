@@ -5,6 +5,7 @@ local text, sound = Drawing.text, Drawing.sound
 local JOKERS = require("game.jokers")
 local draw_die = Drawing.die
 local ScoreDisplay = require("ui.score_display")
+local Feedback = require("ui.scoring_feedback")
 local JokerDetails = require("screens.joker_details")
 local BOARD_X, BOARD_Y, CELL = 42, 53, 36
 local GameScreen = {}
@@ -42,7 +43,7 @@ function GameScreen.update(state, dt, save, offer_high_score)
   if view.phase == "resolving" then
     state.event_timer = state.event_timer + dt
     if input.pressed(input.BTN3) then finish_scoring(state, save, offer_high_score)
-    elseif state.event_timer > (state.reduced_motion and 1.15 or 0.85) then
+    elseif state.event_timer > Feedback.duration then
       state.event_timer = 0
       state.event_index = state.event_index + 1
       state.ledger_offset = math.max(1, state.event_index - 5)
@@ -97,14 +98,22 @@ function GameScreen.draw(state, navigate, save, offer_high_score)
   button(41, 350, 18, 110, 20, joker_name(view.joker), function()
     state.joker_info, state.focus = true, 42
   end)
+  local target
+  if state.pointer_mode then target = state.hover else target = state.focus end
+  local tentative
+  if view.phase == "placing" and target and target >= 1 and target <= 25 then
+    tentative = state.session:preview(state.selected, target)
+  end
+  local target_row = tentative and math.floor((target - 1) / 5) + 1
+  local target_col = tentative and (target - 1) % 5 + 1
   local active_event = view.phase == "resolving" and state.events[state.event_index]
   for line = 1, 5 do
     local row_active = active_event and active_event.line == "row" .. line
     local col_active = active_event and active_event.line == "column" .. line
     text("C" .. line, BOARD_X + (line - 1) * CELL + 10, BOARD_Y - 18,
-      col_active and colors.accent or colors.secondary)
+      (col_active or target_col == line) and colors.accent or colors.secondary)
     text("R" .. line, BOARD_X - 22, BOARD_Y + (line - 1) * CELL + 10,
-      row_active and colors.accent or colors.secondary)
+      (row_active or target_row == line) and colors.accent or colors.secondary)
   end
   for cell = 1, 25 do
     local x, y = BOARD_X + ((cell - 1) % 5) * CELL, BOARD_Y + math.floor((cell - 1) / 5) * CELL
@@ -114,6 +123,11 @@ function GameScreen.draw(state, navigate, save, offer_high_score)
     local face = view.board[cell]
     if current then face = view.dice[current] end
     if face and face > 0 then draw_die(face, x + 3, y + 3, 28, current == state.selected, not current) end
+    Feedback.cell(state, active_event, cell, x, y, CELL,
+      tentative and (math.floor((cell - 1) / 5) + 1 == target_row or (cell - 1) % 5 + 1 == target_col))
+    if tentative and cell == target then
+      text("?" .. view.dice[state.selected], x + 10, y + 12, colors.accent)
+    end
     button(cell, x, y, 35, 35, nil, function()
       if current then state.selected = current; act(state, "unplace", current)
       else
@@ -140,7 +154,16 @@ function GameScreen.draw(state, navigate, save, offer_high_score)
   end
   if locked then
     text((input.mapping_for(input.BTN1) or "?") .. ": select  " .. (input.mapping_for(input.BTN3) or "?") .. ": skip / Esc: menu", 24, 243, colors.secondary)
-    text(view.phase == "results" and "BOARD COMPLETE!" or "COUNTING THE TABLE", 242, 118, colors.accent)
+    local rows, columns = false, false
+    for _, event in ipairs(state.events) do
+      if event.line then
+        rows = rows or event.line:match("^row") ~= nil
+        columns = columns or event.line:match("^column") ~= nil
+      end
+    end
+    text(view.phase == "results" and "BOARD COMPLETE!"
+      or (active_event and active_event.kind == "joker" and (active_event.line and "JOKER CONTRIBUTION" or "THRIFTY: UNUSED ROLLS")
+        or (rows and columns and "ROW + COLUMN!" or "COUNTING THE TABLE")), 242, 118, colors.accent)
     draw_ledger(state, view.phase == "results" and state.ledger or state.events, 242, 138, 6, view.phase == "resolving" and state.event_index or nil, view.phase == "resolving" and view.turn or nil)
     button(31, 242, 214, 102, 19, "Earlier", function() scroll_ledger(state, -1, #(view.phase == "results" and state.ledger or state.events), 6) end)
     button(32, 350, 214, 110, 19, "Later", function() scroll_ledger(state, 1, #(view.phase == "results" and state.ledger or state.events), 6) end)
@@ -148,6 +171,7 @@ function GameScreen.draw(state, navigate, save, offer_high_score)
       if view.phase == "results" then navigate("menu", 1); save()
       else finish_scoring(state, save, offer_high_score) end
     end)
+    Feedback.draw(state, active_event, BOARD_X, BOARD_Y, CELL)
     return
   end
   button(31, 242, 112, 105, 20, "Roll (" .. (3 - view.rolls_used) .. " left)", function() act(state, "roll") end, view.phase == "rolling" and view.rolls_used < 3)
@@ -157,8 +181,8 @@ function GameScreen.draw(state, navigate, save, offer_high_score)
   button(33, 242, 151, 46, 18, "-1", function() act(state, "adjust", state.selected, -1) end, can_adjust and view.dice[state.selected] > 1)
   button(34, 293, 151, 46, 18, "+1", function() act(state, "adjust", state.selected, 1) end, can_adjust and view.dice[state.selected] < 6)
   button(35, 345, 151, 115, 18, "Undo", function() act(state, "undo") end)
-  local preview = state.session:preview()
-  text("PREVIEW", 242, 178, colors.accent)
+  local preview = tentative or state.session:preview()
+  text(tentative and "IF PLACED" or "PREVIEW", 242, 178, colors.accent)
   button(38, 350, 175, 50, 11, "Prev", function() scroll_ledger(state, -1, #preview.events, 3) end)
   button(39, 405, 175, 55, 11, "Next", function() scroll_ledger(state, 1, #preview.events, 3) end)
   if preview then
