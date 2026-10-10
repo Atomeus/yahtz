@@ -67,7 +67,7 @@ local function button(id, x, y, w, h, label, callback, enabled)
   if label then
     gfx.rect_fill(x, y, w, h, enabled == false and gfx.COLOR_BROWN or gfx.COLOR_DARK_BLUE)
     gfx.rect(x, y, w, h, State.focus == id and gfx.COLOR_YELLOW or gfx.COLOR_BROWN)
-    text(label, x + 5, y + math.floor((h - 8) / 2), enabled == false and gfx.COLOR_LIGHT_GRAY or gfx.COLOR_PEACH)
+    text(label, x + 5, y + math.floor((h - 15) / 2), enabled == false and gfx.COLOR_LIGHT_GRAY or gfx.COLOR_PEACH)
   elseif State.focus == id then
     gfx.rect(x - 1, y - 1, w + 2, h + 2, gfx.COLOR_YELLOW)
   end
@@ -130,7 +130,7 @@ local function draw_jokers()
       if row == col or row + col == 4 then die((row + col) % 6 + 1, x + 2, y + 2, 26, false) end
     end
   end
-  text("FIVE TURNS. TEN LINES.", 26, 247, gfx.COLOR_PEACH)
+  text("FIVE TURNS. TEN LINES.", 26, 242, gfx.COLOR_PEACH)
   text("PICK YOUR JOKER", 222, 48, gfx.COLOR_YELLOW)
   for i, joker in ipairs(JOKERS) do
     local y = 70 + (i - 1) * 51
@@ -206,7 +206,7 @@ local function draw_game()
     elseif view.placements[i] ~= 0 then text("SET", x + 5, 97, gfx.COLOR_LIGHT_GRAY) end
   end
   if locked then
-    text((input.mapping_for(input.BTN1) or "?") .. ": select  " .. (input.mapping_for(input.BTN3) or "?") .. ": skip / Esc: menu", 24, 248, gfx.COLOR_PEACH)
+    text((input.mapping_for(input.BTN1) or "?") .. ": select  " .. (input.mapping_for(input.BTN3) or "?") .. ": skip / Esc: menu", 24, 243, gfx.COLOR_PEACH)
     text(view.phase == "results" and "BOARD COMPLETE!" or "COUNTING THE TABLE", 242, 118, gfx.COLOR_YELLOW)
     draw_ledger(view.phase == "results" and State.ledger or State.events, 242, 138, 6, view.phase == "resolving" and State.event_index or nil)
     button(31, 242, 214, 102, 19, "Earlier", function() State.ledger_offset = math.max(1, State.ledger_offset - 1) end)
@@ -243,7 +243,7 @@ local function draw_game()
     else State.message = err end
   end, view.phase == "placing" and all_placed)
   button(37, 242, 245, 218, 11, "Motion: " .. (State.reduced_motion and "reduced" or "bouncy"), function() State.reduced_motion = not State.reduced_motion; save() end)
-  text(State.message and tostring(State.message):sub(1, 33) or ((input.mapping_for(input.BTN1) or "?") .. ": select  " .. (input.mapping_for(input.BTN2) or "?") .. ": undo  Esc: menu"), 24, 248, gfx.COLOR_PEACH)
+  text(State.message and tostring(State.message):sub(1, 33) or ((input.mapping_for(input.BTN1) or "?") .. ": select  " .. (input.mapping_for(input.BTN2) or "?") .. ": undo  Esc: menu"), 24, 243, gfx.COLOR_PEACH)
 end
 
 function _draw()
