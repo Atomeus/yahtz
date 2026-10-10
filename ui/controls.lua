@@ -1,10 +1,11 @@
 local Themes = require("ui.themes")
 local Controls = {}
-local text = require("ui.drawing").text
+local Drawing = require("ui.drawing")
+local text = Drawing.text
 
 function Controls.button(state, id, x, y, w, h, label, callback, enabled)
   local colors = Themes.colors()
-  state.buttons[#state.buttons + 1] = { id = id, x = x, y = y, w = w, h = h, callback = callback, enabled = enabled ~= false }
+  state.buttons[#state.buttons + 1] = { id = id, x = x, y = y, w = w, h = h, callback = callback, click_sound = label ~= nil, enabled = enabled ~= false }
   if label then
     gfx.rect_fill(x, y, w, h, enabled == false and colors.disabled or colors.panel)
     gfx.rect(x, y, w, h, state.focus == id and colors.accent or colors.border)
@@ -56,6 +57,7 @@ function Controls.update(state)
     local hit = click and mx >= b.x and mx < b.x + b.w and my >= b.y and my < b.y + b.h
     if b.enabled and (hit or (b.id == state.focus and input.pressed(input.BTN1))) then
       state.focus = b.id
+      if b.click_sound then Drawing.sound("click") end
       b.callback()
       break
     end

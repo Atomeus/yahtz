@@ -198,7 +198,8 @@ key(input.BTN1)
 assert(State.session:view().placements[1] == 2)
 key(input.BTN2)
 assert(State.session:view().placements[1] == 0)
-click(300, 158) -- Adjustment.
+-- Either adjustment direction must be legal regardless of the random first die.
+click(State.session:view().dice[State.selected] == 6 and 260 or 300, 158)
 assert(State.session:view().adjustments == 1)
 click(50, 60) -- Preserve an unconfirmed placement and its undo history too.
 change_theme_in_game()

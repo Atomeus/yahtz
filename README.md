@@ -79,3 +79,7 @@ independently of sound effects.
 
 Choose **Credits** at the bottom right of the main menu for the music attribution,
 CC0 license, and engine credit. Select **Main menu** or use the back action to return.
+
+Menu and labeled control activation plays a short generated click, including
+keyboard/gamepad selection. Disabled controls stay silent; board cells and dice
+keep their existing gameplay sounds. The pause-menu SFX slider controls both.
