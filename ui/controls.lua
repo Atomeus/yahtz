@@ -3,7 +3,7 @@ local Controls = {}
 local Drawing = require("ui.drawing")
 local text = Drawing.text
 
-function Controls.button(state, id, x, y, w, h, label, callback, enabled)
+function Controls.button(state, id, x, y, w, h, label, callback, enabled, focus_outline)
   local colors = Themes.colors()
   state.buttons[#state.buttons + 1] = { id = id, x = x, y = y, w = w, h = h, callback = callback, click_sound = label ~= nil, enabled = enabled ~= false }
   if label then
@@ -13,7 +13,7 @@ function Controls.button(state, id, x, y, w, h, label, callback, enabled)
     text(label, x + math.floor((w - text_width) / 2),
       y + math.floor((h - text_height) / 2),
       enabled == false and colors.muted or colors.secondary)
-  elseif state.focus == id then
+  elseif state.focus == id and focus_outline ~= false then
     gfx.rect(x - 1, y - 1, w + 2, h + 2, colors.accent)
   end
 end

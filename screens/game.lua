@@ -108,7 +108,21 @@ function GameScreen.draw(state, navigate, save, offer_high_score)
     return
   end
   local locked = view.phase == "resolving" or view.phase == "results"
-  text("YAHTZ", 24, 20, colors.accent)
+  button(46, 20, 14, 74, 22, nil, function()
+    sound("click")
+    state.game_menu_focus = 46
+    navigate("menu", 2)
+  end, true, false)
+  local logo_focused = state.pointer_mode and state.hover == 46
+    or not state.pointer_mode and state.focus == 46
+  local logo_color = logo_focused and colors.text or colors.accent
+  -- Draw the arrow with pixels so navigation does not depend on a font glyph.
+  gfx.rect_fill(25, 24, 10, 2, logo_color)
+  for offset = 0, 3 do
+    gfx.rect_fill(25 + offset, 24 - offset, 2, 2, logo_color)
+    gfx.rect_fill(25 + offset, 24 + offset, 2, 2, logo_color)
+  end
+  text("YAHTZ", 38, 17, logo_color)
   text("TURN " .. math.min(view.turn, 5) .. " / 5", 102, 20, colors.secondary)
   button(40, 176, 13, 56, 20, "Colors", function()
     navigate("themes", 1)

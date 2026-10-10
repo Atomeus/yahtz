@@ -82,6 +82,7 @@ local function start(joker)
   State.screen, State.focus, State.selected = "game", 26, 1
   State.events, State.ledger = {}, {}
   State.pending_colors = {}
+  State.game_menu_focus = nil
   State.high_score_handled = false
   State.results_previous_best, State.results_record_known = nil, true
   save()
@@ -116,6 +117,8 @@ function _update(dt)
     GameScreen.update(State, dt, save, offer_high_score)
   elseif State.screen == "credits" then
     Credits.update(navigate)
+  elseif State.screen == "menu" then
+    MainMenu.update(State)
   end
 end
 

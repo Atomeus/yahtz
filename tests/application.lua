@@ -66,6 +66,7 @@ local function boot()
 end
 local function play()
   click(180, 80)
+  if has_label("Start a new board?") then click(160, 170) end
   assert(has_label("PICK YOUR JOKER"))
   click(230, 80)
   assert(State.session:view().phase == "rolling")
@@ -87,6 +88,42 @@ local function same(a, b)
   for k, v in pairs(a) do if not same(v, b[k]) then return false end end
   for k in pairs(b) do if a[k] == nil then return false end end
   return true
+end
+
+local function visit_menu_in_game(use_actions)
+  local live, boundary = State.session:view(), State.session:snapshot()
+  local history, selected = copy(State.session.history), State.selected
+  local timer, index, events = State.event_timer, State.event_index, copy(State.events)
+  local persisted = copy(saved)
+  if use_actions then
+    State.focus = 1
+    key(input.UP)
+    assert(State.focus == 46, "Direction actions must reach the logo from the board")
+    key(input.BTN1)
+  else click(50, 24) end
+  assert(State.screen == "menu" and has_label("Continue") and State.focus == 2)
+  tick(2)
+  key(input.BTN3) -- Gameplay shortcuts cannot advance payouts from the menu.
+  assert(State.event_timer == timer and State.event_index == index)
+  assert(same(State.session:view(), live) and same(State.session:snapshot(), boundary))
+  assert(same(saved, persisted), "Returning to the menu must not save unconfirmed actions")
+  click(180, 80)
+  assert(has_label("Start a new board?") and #State.buttons == 2)
+  assert(State.focus == 11, "Replacement confirmation defaults to Back")
+  click(330, 80) -- Underlying menu actions must not be active.
+  assert(has_label("Start a new board?") and State.screen == "menu")
+  click(290, 170)
+  assert(has_label("Continue") and not has_label("Start a new board?"))
+  click(180, 80)
+  key(input.BTN2)
+  assert(not has_label("Start a new board?"), "The remappable back action dismisses confirmation")
+  key(input.DOWN)
+  assert(State.focus == 2)
+  key(input.BTN1)
+  assert(State.screen == "game" and State.focus == 46)
+  assert(same(State.session:view(), live) and same(State.session:snapshot(), boundary))
+  assert(same(State.session.history, history) and State.selected == selected)
+  assert(State.event_timer == timer and State.event_index == index and same(State.events, events))
 end
 
 local function change_theme_in_game()
@@ -171,6 +208,7 @@ local function complete_board(enter_score)
         if rect[1] == 42 and rect[2] == 53 and rect[3] == 35 and rect[5] == require("ui.themes").colors().accent then highlighted = true end
       end
       assert(highlighted, "Completed line cells must be highlighted")
+      visit_menu_in_game(true)
       inspect_joker()
       inspect_events()
       change_theme_in_game()
@@ -248,6 +286,7 @@ local original = table.concat(saved.session.dice, ",")
 click(250, 70) -- Hold first die.
 assert(State.session:view().held[1])
 click(250, 120) -- Reroll.
+visit_menu_in_game(false)
 inspect_joker()
 inspect_events()
 change_theme_in_game()
@@ -279,6 +318,7 @@ assert(State.session:view().placements[1] == 0)
 click(State.session:view().dice[State.selected] == 6 and 260 or 300, 158)
 assert(State.session:view().adjustments == 1)
 click(50, 60) -- Preserve an unconfirmed placement and its undo history too.
+visit_menu_in_game(true)
 inspect_events()
 change_theme_in_game()
 key(input.BTN2)
@@ -530,4 +570,29 @@ for joker_index, joker in ipairs(Jokers) do
   click(280, 131) -- Skip and continue to a fresh draft.
   assert(State.screen == "jokers" and #State.joker_choices == 3)
 end
+-- A replacement is explicit, and backing out of the draft still preserves the live board.
+saved = {session = Session.new("pair_pay", 17):snapshot(), color_progression_version = 2,
+  owned_colors = {classic = true}}
+boot()
+click(180, 110)
+click(250, 70)
+click(250, 120)
+local old_session, old_live, old_saved = State.session, State.session:view(), copy(saved)
+click(50, 24)
+click(180, 80)
+key(input.LEFT)
+assert(State.focus == 10)
+key(input.BTN1)
+assert(State.screen == "jokers" and same(saved, old_saved))
+click(50, 200) -- Leave joker selection without replacing anything.
+click(180, 110)
+assert(State.session == old_session and same(State.session:view(), old_live))
+click(50, 24)
+click(180, 80)
+click(160, 170)
+click(230, 80)
+assert(State.screen == "game" and State.session ~= old_session)
+assert(State.session:view().turn == 1 and State.session:view().score == 0)
+assert(not State.session:view().held[1] and saved.session.turn == 1)
+assert(State.game_menu_focus == nil)
 print("lifecycle navigation, controls, full boards, resume, preferences and name entry passed")

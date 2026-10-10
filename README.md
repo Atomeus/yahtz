@@ -49,6 +49,18 @@ Use **Motion** on the main menu to switch between short dice bounces and reduced
 
 The game saves automatically when choosing a joker and confirming a turn. Returning during an unfinished turn restores its original dice and consumables, discarding unconfirmed rerolls, placements and Adjustments. Repeating the same actions produces the same dice. A completed board resumes at its results screen. Motion preference and score history are saved too.
 
+Select the back arrow and YAHTZ logo at the upper left during play to return to
+the main menu. Continue restores your live turn exactly, including held dice,
+rerolls, unconfirmed placements, Adjustments, and undo history. Payouts pause in
+the menu and resume on Continue. The logo is also reachable with remappable
+direction/select actions. Closing and reopening the app still restores the last
+confirmed turn boundary.
+
+Play now asks **Start a new board?** when a board is unfinished. Choose **Back**
+(or the remappable back action) to keep it, or **Start new board** to choose a new
+joker. The old board is replaced only when you select that joker; backing out of
+joker selection preserves it.
+
 Run all tests with `usagi run test.lua`. It prints each result and closes automatically when all suites pass. On failure, the window stays open and the console shows the error. No Python or separate Lua installation is required.
 
 Completed boards that qualify for the top five offer optional name entry using an on-screen keyboard, accessible with mouse or remappable direction/select actions. Names allow up to 12 letters, digits, or spaces; a blank name saves as PLAYER. Save score records the play once, or Skip dismisses the offer. Scores persist across boards and restarts. Equal scores keep the earlier entry first; when five entries exist, a new score must beat fifth place.

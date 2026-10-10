@@ -4,18 +4,41 @@ local Controls = require("ui.controls")
 local text = Drawing.text
 local MainMenu = {}
 
+local function cancel_new_board(state)
+  state.confirm_new_board, state.focus = false, 1
+end
+
+function MainMenu.update(state)
+  if state.confirm_new_board and input.pressed(input.BTN2) then cancel_new_board(state) end
+end
+
 function MainMenu.draw(state, navigate, offer_high_score, toggle_motion)
   local colors = Themes.colors()
   local function button(...) return Controls.button(state, ...) end
+  if state.confirm_new_board then
+    gfx.rect_fill(76, 75, 328, 128, colors.panel)
+    gfx.rect(76, 75, 328, 128, colors.border)
+    text("Start a new board?", 108, 89, colors.accent)
+    text("Your unfinished board will be replaced.", 96, 113, colors.text)
+    text("Continue keeps your current board.", 96, 132, colors.secondary)
+    button(10, 96, 158, 144, 26, "Start new board", function()
+      state.confirm_new_board = false
+      navigate("jokers", 1)
+    end)
+    button(11, 248, 158, 136, 26, "Back", function() cancel_new_board(state) end)
+    return
+  end
   local title_width = usagi.measure_text("YAHTZ")
   gfx.text_ex("YAHTZ", (480 - title_width * 3) / 2, 18, 3, 0, colors.accent, 1)
   button(1, 168, 69, 144, 26, "Play now", function()
-    navigate("jokers", 1)
+    if state.session and state.session:view().phase ~= "results" then
+      state.confirm_new_board, state.focus = true, 11
+    else navigate("jokers", 1) end
   end)
   if state.session then
     local completed = state.session:view().phase == "results"
     button(2, 168, 100, 144, 20, completed and "View results" or "Continue", function()
-      navigate("game", 26)
+      navigate("game", state.game_menu_focus or 26)
       if completed then offer_high_score() end
     end)
   end
