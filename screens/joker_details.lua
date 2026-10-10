@@ -6,10 +6,7 @@ local JokerDetails = {}
 
 function JokerDetails.draw(state, id, close)
   local colors = Themes.colors()
-  local joker
-  for _, candidate in ipairs(JOKERS) do
-    if candidate.id == id then joker = candidate; break end
-  end
+  local joker = JOKERS.get(id)
   if not joker then return end
   gfx.rect_fill(64, 58, 352, 154, colors.panel)
   gfx.rect(64, 58, 352, 154, colors.border)

@@ -7,11 +7,12 @@ gfx = setmetatable({
 }, {__index = function(_, key) return key end})
 usagi = {measure_text = function(label) return #label * 6, 7 end}
 local Feedback = require("ui.scoring_feedback")
+local Lines = require("game.lines")
 local ScoreDisplay = require("ui.score_display")
 local state = {event_timer = 0.03, event_index = 1, events = {{kind = "line", line = "row1", points = 50}}, reduced_motion = false}
 local view = {phase = "resolving", score = 60, turn = 2}
-assert(Feedback.contains("row2", 6) and not Feedback.contains("row2", 1))
-assert(Feedback.contains("column2", 7) and not Feedback.contains("column2", 8))
+assert(Lines.contains("row2", 6) and not Lines.contains("row2", 1))
+assert(Lines.contains("column2", 7) and not Lines.contains("column2", 8))
 Feedback.cell(state, state.events[1], 1, 42, 53, 36)
 assert(#fills == 1 and fills[1][3] > 2 and fills[1][4] == 2, "Row sweep travels horizontally")
 fills = {}

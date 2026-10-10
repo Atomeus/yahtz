@@ -25,7 +25,7 @@ Screen behavior and rendering live together in screens/main_menu.lua,
 screens/name_entry.lua, screens/joker_selection.lua, and screens/game.lua.
 Shared button activation and directional focus live in ui/controls.lua; drawing
 and sound helpers live in ui/drawing.lua. Joker presentation data lives in
-game/jokers.lua. Scoring, game sessions, and high-score ranking remain separate
+game/jokers.lua; shared row/column ID decoding lives in game/lines.lua. Scoring, game sessions, and high-score ranking remain separate
 domain modules.
 
 Run `usagi run test.lua` to execute the domain suites and the application

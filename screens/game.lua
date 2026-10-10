@@ -3,6 +3,7 @@ local Drawing = require("ui.drawing")
 local Controls = require("ui.controls")
 local text, sound = Drawing.text, Drawing.sound
 local JOKERS = require("game.jokers")
+local Lines = require("game.lines")
 local draw_die = Drawing.die
 local ScoreDisplay = require("ui.score_display")
 local Feedback = require("ui.scoring_feedback")
@@ -54,8 +55,8 @@ function GameScreen.update(state, dt, save, offer_high_score)
 end
 
 local function joker_name(id)
-  for _, j in ipairs(JOKERS) do if j.id == id then return j.name end end
-  return id
+  local joker = JOKERS.get(id)
+  return joker and joker.name or id
 end
 
 local function event_text(event, turn)
@@ -157,8 +158,9 @@ function GameScreen.draw(state, navigate, save, offer_high_score)
     local rows, columns = false, false
     for _, event in ipairs(state.events) do
       if event.line then
-        rows = rows or event.line:match("^row") ~= nil
-        columns = columns or event.line:match("^column") ~= nil
+        local direction = Lines.decode(event.line)
+        rows = rows or direction == "row"
+        columns = columns or direction == "column"
       end
     end
     text(view.phase == "results" and "BOARD COMPLETE!"

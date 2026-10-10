@@ -16,4 +16,10 @@ local JOKERS = {
   } },
 }
 
+function JOKERS.get(id)
+  for _, joker in ipairs(JOKERS) do
+    if joker.id == id then return joker end
+  end
+end
+
 return JOKERS
