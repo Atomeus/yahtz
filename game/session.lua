@@ -41,6 +41,7 @@ function Session:roll()
   if s.phase ~= "rolling" or s.rolls_used >= 3 then return nil, "No rolls available" end
   for i = 1, 5 do if not s.held[i] then s.dice[i] = roll_face(s) end end
   s.rolls_used = s.rolls_used + 1
+  if s.rolls_used == 3 then s.phase = "placing" end
   return true
 end
 function Session:begin_placement()
