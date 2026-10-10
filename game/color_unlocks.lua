@@ -1,8 +1,9 @@
-local Unlocks = {VERSION = 2}
+local Unlocks = {VERSION = 3}
 Unlocks.milestones = {
   {id = "midnight", score = 200},
   {id = "plum", score = 300},
   {id = "golden", score = 400},
+  {id = "blueprint", score = 425},
   {id = "forest", score = 450},
   {id = "cyberpunk", score = 475},
   {id = "candyland", score = 500},

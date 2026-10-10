@@ -26,6 +26,12 @@ owned, theme, pending = Unlocks.restore({color_progression_version = 2, theme = 
 assert(theme == "classic" and owned.midnight and not owned.unknown and not owned.golden)
 assert(#pending == 1 and pending[1] == "midnight")
 local input = {classic = true}
+local migrated, chosen, queued = Unlocks.restore({color_progression_version = 2,
+  theme = "candyland", owned_colors = {candyland = true},
+  pending_colors = {"candyland"}, high_scores = {{score = 425}}})
+assert(migrated.candyland and migrated.blueprint and chosen == "candyland")
+assert(#queued == 1 and queued[1] == "candyland")
+assert(not Unlocks.award({}, 424).blueprint and Unlocks.award({}, 425).blueprint)
 local upgraded, selected, notices = Unlocks.restore({color_progression_version = 1,
   owned_colors = {midnight = true}, theme = "midnight", high_scores = {{score = 575}}})
 assert(upgraded.dark and upgraded.paper and upgraded.forest and selected == "midnight" and #notices == 0)

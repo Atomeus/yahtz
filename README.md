@@ -139,12 +139,14 @@ behavior. Older saved boards finish without events; start a new board to try the
 
 ## Color themes
 
-Prestige colors continue beyond Golden Hour: Forest at 450, Cyberpunk at 475,
-Candyland at 500, Ocean at 525, Paper at 550, and Dark at 575 points on one
-completed board. Paper uses light surfaces and dark ink; the other prestige
-palettes use dark surfaces. Colors has Prev/Next pages, available with mouse or
-remappable controls. A New colors button on results lists every newly earned
+Prestige colors continue beyond Golden Hour: Blueprint at 425, Forest at 450, Cyberpunk at 475,
+Sketchbook at 500, Ocean at 525, Paper at 550, and Dark at 575 points on one
+completed board. Sketchbook uses white and gray pages with blue ink; Paper uses
+cream and white surfaces with dark ink. Blueprint uses blue drafting surfaces,
+white lines, and yellow accents. Colors has Prev/Next pages, available with mouse
+or remappable controls. A New colors button on results lists every newly earned
 theme. Existing recorded scores count toward the added milestones on upgrade.
+Existing Candyland owners retain their unlock and selection as Sketchbook.
 Without events, the original jokers reach 500 with Short Run, 550 with Thrifty, and 600 with
 Pair Pay. The expanded roster offers other routes: an all-ones Little Ones board
 scores 750, and all-odd Odd Todd or all-even Even Steven boards can score 650.
