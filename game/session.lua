@@ -1,6 +1,7 @@
 local Jokers = require("game.jokers")
 local Lines = require("game.lines")
 local Session = {}
+local Events = require("game.events")
 Session.__index = Session
 local function copy(value)
   if type(value) ~= "table" then return value end
@@ -13,6 +14,7 @@ local function roll_face(state)
   return state.rng % 6 + 1
 end
 local function initial_roll(state)
+  if state.objectives then Events.deal(state.objectives, state.scored_lines) end
   state.dice, state.held, state.placements = {}, {}, {}
   for i = 1, 5 do
     state.dice[i], state.held[i], state.placements[i] = roll_face(state), false, 0
@@ -22,7 +24,8 @@ end
 function Session.new(joker, seed)
   assert(Jokers.get(joker), "unknown joker")
   local state = {joker = joker, rng = ((math.floor(seed or 1) - 1) % 2147483646) + 1,
-    board = {}, scored_lines = {}, score = 0, turn = 1, adjustments = 2, turn_bonus_total = 0}
+    board = {}, scored_lines = {}, score = 0, turn = 1, adjustments = 2, turn_bonus_total = 0,
+    objectives = Events.new(seed)}
   for i = 1, 25 do state.board[i] = 0 end
   initial_roll(state)
   return Session.resume(state)
@@ -94,8 +97,11 @@ local Scoring = require("scoring")
 function Session:preview(die, cell)
   local s = self.state
   local board = copy(s.board)
+  local fresh = {}
   for i = 1, 5 do
-    if s.placements[i] ~= 0 then board[s.placements[i]] = s.dice[i] end
+    if s.placements[i] ~= 0 then
+      board[s.placements[i]], fresh[s.placements[i]] = s.dice[i], true
+    end
   end
   -- A hypothetical die uses the same eligibility as placement, without history or RNG.
   if die ~= nil or cell ~= nil then
@@ -104,6 +110,7 @@ function Session:preview(die, cell)
       return nil, "Choose an unplaced die and empty cell"
     end
     board[cell] = s.dice[die]
+    fresh[cell] = true
   end
   local result = {lines = {}, events = {}, turn_bonus = 0, total = s.score, points = 0}
   if s.phase ~= "placing" then return result end
@@ -135,6 +142,12 @@ function Session:preview(die, cell)
     end
   end
   result.points = result.points + result.turn_bonus
+  result.event_bonus = 0
+  for _, payout in ipairs(Events.evaluate(s.objectives, board, fresh, result.lines)) do
+    result.events[#result.events + 1] = payout
+    result.event_bonus = result.event_bonus + payout.points
+  end
+  result.points = result.points + result.event_bonus
   result.total = s.score + result.points
   return result
 end
@@ -146,6 +159,14 @@ function Session:confirm()
   for i = 1, 5 do s.board[s.placements[i]] = s.dice[i] end
   for _, line in ipairs(preview.lines) do s.scored_lines[line.id] = true end
   s.score = preview.total
+  if s.objectives then
+    s.objectives.contribution = s.objectives.contribution + preview.event_bonus
+    for _, payout in ipairs(preview.events) do
+      if payout.kind == "event" and payout.line then
+        s.objectives.line_bonuses[payout.line] = (s.objectives.line_bonuses[payout.line] or 0) + payout.points
+      end
+    end
+  end
   if s.turn_bonus_total ~= nil then s.turn_bonus_total = s.turn_bonus_total + preview.turn_bonus end
   local boundary = copy(s)
   if s.turn == 5 then

@@ -11,11 +11,13 @@ function Summary.comparison(score, previous)
 end
 
 function Summary.calculate(view)
-  local result = {score = view.score, contribution = 0}
+  local result = {score = view.score, contribution = 0,
+    event_contribution = view.objectives and view.objectives.contribution}
   for _, id in ipairs(Lines.ids(view.joker)) do
     local faces = Lines.faces(view.board, id)
     local scored = Scoring.evaluate(faces, view.joker)
-    local line = {id = id, faces = faces, category = scored.category, total = scored.total}
+    local line = {id = id, faces = faces, category = scored.category, total = scored.total
+      + (view.objectives and view.objectives.line_bonuses[id] or 0)}
     local diagonal = Lines.decode(id) == "diagonal"
     if not diagonal then
       if not result.strongest or line.total > result.strongest.total then

@@ -67,6 +67,30 @@ lifecycle integration test. The latter simulates input and persistence through
 the engine callbacks; visual rendering and physical gamepad behavior still
 require a check in Usagi.
 
+## Events
+
+New boards have one board event and a fresh turn event each turn, displayed below
+the grid. The board event awards +50 when at least three finished rows each total
+exactly 20 pips. It pays only at board completion.
+
+Five turn events are drawn without repeats from six objectives: orthogonally
+adjacent dice summing to 7 or 9, adjacent dice multiplying to 6 or 12 (each +10),
+and a marked row or column completed with exactly 15 or 20 pips (x2 ordinary
+combination score). Arithmetic pairs must include at least one die placed this
+turn; several matching pairs still award only one bonus. Marked lines are drawn
+from unfinished lines without checking whether they can be completed this turn.
+Missing an event costs nothing, and events cannot be exchanged.
+
+Previews include event payouts, including the board reward on the final turn.
+Multipliers add one extra ordinary combination payout; they do not multiply
+joker bonuses, rule improvements, or other event rewards. Event contributions
+appear separately in the scoring ledger and results summary. A multiplier bonus
+also counts when choosing the strongest line.
+
+Objectives, the remaining event deck, and event RNG persist at turn boundaries.
+Event draws use a separate random stream so dice rolls retain their existing
+behavior. Older saved boards finish without events; start a new board to try them.
+
 ## Color themes
 
 Prestige colors continue beyond Golden Hour: Forest at 450, Cyberpunk at 475,
@@ -75,9 +99,11 @@ completed board. Paper uses light surfaces and dark ink; the other prestige
 palettes use dark surfaces. Colors has Prev/Next pages, available with mouse or
 remappable controls. A New colors button on results lists every newly earned
 theme. Existing recorded scores count toward the added milestones on upgrade.
-The original jokers reach 500 with Short Run, 550 with Thrifty, and 600 with
+Without events, the original jokers reach 500 with Short Run, 550 with Thrifty, and 600 with
 Pair Pay. The expanded roster offers other routes: an all-ones Little Ones board
 scores 750, and all-odd Odd Todd or all-even Even Steven boards can score 650.
+Event rewards add to combination and
+joker points, and count toward color unlocks and the leaderboard.
 
 Choose **Colors** from the main menu to select Classic Table, Midnight,
 Plum Velvet, or Golden Hour. Classic Table is available immediately; one completed

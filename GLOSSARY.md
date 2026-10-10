@@ -37,5 +37,14 @@ A complete row or column of five board cells, evaluated once when it fills.
 **Chance**:
 The fallback scoring category worth the sum of the faces in a line.
 
+**Event**:
+A temporary objective that rewards qualifying die placements or board arrangements.
+
+**Board event**:
+An event revealed at the start of a board that lasts for the whole board and is evaluated at board completion.
+
+**Turn event**:
+An event revealed at the start of a turn that is evaluated when that turn's placements are confirmed. It must involve at least one die placed during that turn.
+
 **Adjustment**:
 A consumable that changes one unplaced die by one face value, within one through six.

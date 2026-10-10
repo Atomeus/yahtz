@@ -74,7 +74,7 @@ function Results.draw(state, navigate, save, enter_name)
     local offset = state.results_offset or 1
     for i = offset, math.min(#state.ledger, offset + 9) do
       local event = state.ledger[i]
-      local label = (event.line and Lines.label(event.line) or (event.scope == "board" and "Board" or "Turn")) .. " " .. (event.category or event.joker or event.kind)
+      local label = event.label or ((event.line and Lines.label(event.line) or (event.scope == "board" and "Board" or "Turn")) .. " " .. (event.category or event.joker or event.kind))
       text("T" .. (event.turn or "?") .. " " .. label:gsub("_", " "):sub(1, 24), 242, 65 + (i - offset) * 14, colors.secondary)
       text("+" .. event.points, 425, 65 + (i - offset) * 14, colors.text)
     end
@@ -91,7 +91,10 @@ function Results.draw(state, navigate, save, enter_name)
   text(Lines.label(line.id) .. "  " .. table.concat(line.faces, " "), 242, 103, colors.text)
   text(line.category:gsub("four_of_a_kind", "4 of a kind"):gsub("three_of_a_kind", "3 of a kind"):gsub("_", " ") .. "  +" .. line.total, 242, 119, colors.secondary)
   if summary.contribution ~= nil then
-    text(Jokers.get(view.joker).name .. ": +" .. summary.contribution, 242, 145, colors.secondary)
+    text(Jokers.get(view.joker).name .. ": +" .. summary.contribution, 242, 139, colors.secondary)
+  end
+  if summary.event_contribution ~= nil then
+    text("Events: +" .. summary.event_contribution, 242, 155, colors.secondary)
   end
   local pending = Results.pending(state)
   local function details()

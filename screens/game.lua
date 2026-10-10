@@ -8,6 +8,7 @@ local draw_die = Drawing.die
 local ScoreDisplay = require("ui.score_display")
 local Feedback = require("ui.scoring_feedback")
 local JokerDetails = require("screens.joker_details")
+local Objectives = require("game.events")
 local BOARD_X, BOARD_Y, CELL = 42, 53, 36
 local GameScreen = {}
 
@@ -60,6 +61,9 @@ local function joker_name(id)
 end
 
 local function event_text(event, turn)
+  if event.kind == "event" then
+    return "T" .. (event.turn or turn or "?") .. " " .. event.label, event.points
+  end
   local name = event.category or event.joker or event.kind
   name = name:gsub("four_of_a_kind", "4 of a kind"):gsub("three_of_a_kind", "3 of a kind"):gsub("_", " ")
   if event.kind == "joker" then name = name .. " bonus" end
@@ -108,9 +112,21 @@ function GameScreen.draw(state, navigate, save, offer_high_score)
   local target_row = tentative and math.floor((target - 1) / 5) + 1
   local target_col = tentative and (target - 1) % 5 + 1
   local active_event = view.phase == "resolving" and state.events[state.event_index]
+  if view.objectives then
+    local objective_board = {}
+    for cell = 1, 25 do objective_board[cell] = view.board[cell] end
+    for die = 1, 5 do
+      local cell = view.placements[die]
+      if cell ~= 0 then objective_board[cell] = view.dice[die] end
+    end
+    if tentative then objective_board[target] = view.dice[state.selected] end
+    text("Board: rows =20 " .. Objectives.board_progress(objective_board) .. "/3 +50", 24, 235, colors.secondary)
+    text("Turn: " .. Objectives.label(view.objectives.active), 24, 251, colors.secondary)
+  end
   for line = 1, 5 do
-    local row_active = active_event and active_event.line == "row" .. line
-    local col_active = active_event and active_event.line == "column" .. line
+    local marked = view.objectives and view.objectives.active.line
+    local row_active = (active_event and active_event.line == "row" .. line) or marked == "row" .. line
+    local col_active = (active_event and active_event.line == "column" .. line) or marked == "column" .. line
     text("C" .. line, BOARD_X + (line - 1) * CELL + 10, BOARD_Y - 18,
       (col_active or target_col == line) and colors.accent or colors.secondary)
     text("R" .. line, BOARD_X - 22, BOARD_Y + (line - 1) * CELL + 10,
@@ -157,7 +173,10 @@ function GameScreen.draw(state, navigate, save, offer_high_score)
     elseif view.phase == "placing" then text("READY", x + 1, 97, colors.secondary) end
   end
   if locked then
-    text((input.mapping_for(input.BTN1) or "?") .. ": select  " .. (input.mapping_for(input.BTN3) or "?") .. ": skip / Esc: menu", 24, 243, colors.secondary)
+    if view.objectives then
+      text((input.mapping_for(input.BTN3) or "?") .. ": speed through", 242, 249, colors.secondary)
+    end
+    if not view.objectives then text((input.mapping_for(input.BTN1) or "?") .. ": select  " .. (input.mapping_for(input.BTN3) or "?") .. ": skip / Esc: menu", 24, 243, colors.secondary) end
     local rows, columns = false, false
     for _, event in ipairs(state.events) do
       if event.line then
@@ -167,7 +186,8 @@ function GameScreen.draw(state, navigate, save, offer_high_score)
       end
     end
     text(view.phase == "results" and "BOARD COMPLETE!"
-      or (active_event and active_event.kind == "joker" and (active_event.joker == "thrifty" and "THRIFTY: UNUSED ROLLS" or "JOKER CONTRIBUTION")
+      or (active_event and active_event.kind == "event" and "EVENT REWARD"
+        or active_event and active_event.kind == "joker" and (active_event.joker == "thrifty" and "THRIFTY: UNUSED ROLLS" or "JOKER CONTRIBUTION")
         or (rows and columns and "ROW + COLUMN!" or "COUNTING THE TABLE")), 242, 118, colors.accent)
     draw_ledger(state, view.phase == "results" and state.ledger or state.events, 242, 138, 6, view.phase == "resolving" and state.event_index or nil, view.phase == "resolving" and view.turn or nil)
     button(31, 242, 214, 102, 19, "Earlier", function() scroll_ledger(state, -1, #(view.phase == "results" and state.ledger or state.events), 6) end)
@@ -207,7 +227,13 @@ function GameScreen.draw(state, navigate, save, offer_high_score)
       save(); sound("score")
     else state.message = err end
   end, view.phase == "placing" and all_placed)
-  text(state.message and tostring(state.message):sub(1, 33) or ((input.mapping_for(input.BTN1) or "?") .. ": select  " .. (input.mapping_for(input.BTN2) or "?") .. ": undo  Esc: menu"), 24, 243, colors.secondary)
+  if state.message then
+    text(tostring(state.message):sub(1, 33), view.objectives and 242 or 24, view.objectives and 249 or 243, colors.accent)
+  elseif not view.objectives then
+    text((input.mapping_for(input.BTN1) or "?") .. ": select  " .. (input.mapping_for(input.BTN2) or "?") .. ": undo  Esc: menu", 24, 243, colors.secondary)
+  else
+    text((input.mapping_for(input.BTN1) or "?") .. ": select  " .. (input.mapping_for(input.BTN2) or "?") .. ": undo", 242, 249, colors.secondary)
+  end
 end
 
 return GameScreen

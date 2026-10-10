@@ -69,6 +69,17 @@ local function play()
   assert(has_label("PICK YOUR JOKER"))
   click(230, 80)
   assert(State.session:view().phase == "rolling")
+  assert(State.session:view().objectives.active.id == saved.session.objectives.active.id)
+  local board_objective, turn_objective = false, false
+  for _, item in ipairs(text_positions) do
+    if item.value:match("^Board: rows =20") or item.value:match("^Turn: ") then
+      local width, height = usagi.measure_text(item.value)
+      assert(item.x + width <= 222 and item.y + height <= 270, "Objectives must fit below the board")
+      board_objective = board_objective or item.value:match("^Board:") ~= nil
+      turn_objective = turn_objective or item.value:match("^Turn:") ~= nil
+    end
+  end
+  assert(board_objective and turn_objective, "Both objective durations stay visible during play")
 end
 local function same(a, b)
   if type(a) ~= type(b) then return false end
@@ -143,6 +154,7 @@ local function complete_board(enter_score)
   end
   assert(State.session:view().phase == "results")
   assert(has_label("BOARD COMPLETE!") and has_label("Save score"))
+  assert(has_label("Events: +" .. saved.session.objectives.contribution))
   if enter_score == false then return end
   click(300, 182)
   assert(has_label("NEW HIGH SCORE!"))

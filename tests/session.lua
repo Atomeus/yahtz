@@ -29,6 +29,8 @@ assert(placed:view().dice[1] == 2 and placed:view().adjustments == 2)
 assert(not placed:undo())
 print("session placement and Adjustment undo passed")
 local scoring_game = Session.new("thrifty", 1)
+-- Keep this ordinary-scoring fixture representative of a legacy board.
+scoring_game.state.objectives, scoring_game.boundary.objectives = nil, nil
 assert(not scoring_game:confirm())
 assert(scoring_game:begin_placement())
 for i = 1, 5 do assert(scoring_game:place(i, i)) end
@@ -97,6 +99,7 @@ print("session five-turn results, consumables, and score-once passed")
 
 -- Tentative placement closes both directions, includes arranged dice, and changes nothing.
 local candidate = Session.new("pair_pay", 1):view()
+candidate.objectives = nil
 candidate.phase, candidate.turn, candidate.score = "placing", 3, 80
 candidate.dice = {2, 2, 3, 4, 5}
 for _, cell in ipairs({1, 2, 3, 4, 10, 15, 20}) do candidate.board[cell] = 2 end
