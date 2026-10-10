@@ -26,5 +26,9 @@ for a future design discussion and playtest.
 ## Current selection
 
 The user selected Alternator, Variety Show, and Double Feature for implementation
-instead. They are implemented separately on `feature/strategic-jokers` at the
+instead. They are implemented in `8d6f80d` and merged into main at the
 initial proposed values. These deferred ideas are not included in random drafts.
+
+The board objective Mirror, Mirror is now implemented, but is a separate
+once-per-board objective; it does not implement the deferred per-line joker.
+None of these five ideas is required to finish the accepted scope.
