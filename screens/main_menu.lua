@@ -37,6 +37,9 @@ function MainMenu.draw(state, navigate, offer_high_score, toggle_motion)
     text(entry and entry.name or "---", 144, y, colors.secondary)
     text(entry and tostring(entry.score) or "---", 342, y, colors.text)
   end
+  button(5, 360, 238, 92, 20, "Credits", function()
+    navigate("credits", 1)
+  end)
   text("Mouse / directions + " .. (input.mapping_for(input.BTN1) or "?"), 96, 243, colors.secondary)
 end
 

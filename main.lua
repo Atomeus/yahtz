@@ -5,6 +5,7 @@ local HighScores = require("game.high_scores")
 local Session = require("game.session")
 local Controls = require("ui.controls")
 local MainMenu = require("screens.main_menu")
+local Credits = require("screens.credits")
 local NameEntry = require("screens.name_entry")
 local JokerSelection = require("screens.joker_selection")
 local GameScreen = require("screens.game")
@@ -75,6 +76,8 @@ function _update(dt)
   Controls.update(State)
   if State.session and State.screen == "game" then
     GameScreen.update(State, dt, save, offer_high_score)
+  elseif State.screen == "credits" then
+    Credits.update(navigate)
   end
 end
 
@@ -86,6 +89,7 @@ function _draw()
   gfx.rect_fill(8, 8, 464, 254, colors.frame)
   gfx.rect_fill(12, 12, 456, 246, colors.table)
   if State.screen == "menu" then MainMenu.draw(State, navigate, offer_high_score, toggle_motion)
+  elseif State.screen == "credits" then Credits.draw(State, navigate)
   elseif State.screen == "themes" then ThemeSelection.draw(State, return_from_themes, select_theme)
   elseif State.screen == "name_entry" then NameEntry.draw(State, navigate, save)
   elseif State.screen == "jokers" then JokerSelection.draw(State, navigate, start)
