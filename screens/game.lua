@@ -100,7 +100,7 @@ function GameScreen.draw(state, navigate, save, offer_high_score)
   local function button(...) return Controls.button(state, ...) end
   local view = state.session:view()
   if state.event_info and view.objectives then
-    EventDetails.draw(state, state.event_info, view.objectives.active, function() close_event_details(state) end)
+    EventDetails.draw(state, state.event_info, state.event_info == "board" and view.objectives.board or view.objectives.active, function() close_event_details(state) end)
     return
   end
   if state.joker_info then
@@ -153,7 +153,7 @@ function GameScreen.draw(state, navigate, save, offer_high_score)
         or not state.pointer_mode and state.focus == id
       return highlighted and colors.accent or colors.secondary
     end
-    text("Board: rows =20 " .. Objectives.board_progress(objective_board) .. "/3 +50 ?", 24, 235, event_color(43))
+    text(Objectives.board_label(objective_board, view.objectives.board), 24, 235, event_color(43))
     text("Turn: " .. Objectives.label(view.objectives.active) .. " ?", 24, 247, event_color(44))
     button(43, 24, 232, 198, 12, nil, function()
       sound("click")

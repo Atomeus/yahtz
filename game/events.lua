@@ -1,6 +1,7 @@
 -- Temporary objectives are independent of dice RNG and ordinary combination rules.
 local Events = {}
 local Scoring = require("scoring")
+local BoardObjectives = require("game.board_objectives")
 local definitions = {
   {id = "sum7", operation = "sum", target = 7},
   {id = "sum9", operation = "sum", target = 9},
@@ -14,8 +15,12 @@ local function random(state, count)
   return state.rng % count + 1
 end
 function Events.new(seed)
-  return {rng = ((math.floor(seed or 1) - 1) % 2147483646) + 1,
+  local state = {rng = ((math.floor(seed or 1) - 1) % 2147483646) + 1,
     remaining = {1, 2, 3, 4, 5, 6}, contribution = 0, line_bonuses = {}}
+  -- Warm up the generator before dealing; its first low-seed values correlate.
+  random(state, 1)
+  state.board = BoardObjectives.options[random(state, #BoardObjectives.options)].id
+  return state
 end
 function Events.deal(state, scored_lines)
   local definition = definitions[table.remove(state.remaining, random(state, #state.remaining))]
@@ -39,19 +44,8 @@ function Events.label(event)
   end
   return "Adjacent " .. (event.operation == "sum" and "sum " or "product ") .. event.target .. ": +10"
 end
-function Events.board_progress(board)
-  local count = 0
-  for row = 1, 5 do
-    local sum, complete = 0, true
-    for col = 1, 5 do
-      local value = board[(row - 1) * 5 + col]
-      sum = sum + value
-      if value == 0 then complete = false end
-    end
-    if complete and sum == 20 then count = count + 1 end
-  end
-  return count
-end
+function Events.board_progress(board, id) return BoardObjectives.progress(board, id) end
+function Events.board_label(board, id) return BoardObjectives.label(board, id) end
 function Events.evaluate(state, board, fresh, lines)
   local payouts = {}
   if not state then return payouts end -- Legacy boards keep their original rules.
@@ -86,9 +80,10 @@ function Events.evaluate(state, board, fresh, lines)
   end
   local complete = true
   for cell = 1, 25 do if board[cell] == 0 then complete = false end end
-  if complete and Events.board_progress(board) >= 3 then
-    payouts[#payouts + 1] = {kind = "event", objective = "three_rows20",
-      label = "Board: 3 rows sum 20", points = 50}
+  local objective = BoardObjectives.definition(state.board)
+  if complete and Events.board_progress(board, state.board) >= objective.target then
+    payouts[#payouts + 1] = {kind = "event", objective = objective.id,
+      label = "Board: " .. objective.name, points = objective.points}
   end
   return payouts
 end

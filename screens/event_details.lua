@@ -3,18 +3,17 @@ local Controls = require("ui.controls")
 local Drawing = require("ui.drawing")
 local Lines = require("game.lines")
 local EventDetails = {}
+local BoardObjectives = require("game.board_objectives")
 
 function EventDetails.draw(state, scope, event, close)
   local title, details
   if scope == "board" then
-    title = "BOARD EVENT: THREE ROWS"
-    details = {
-      "Finish at least three rows with exactly 20 pips each.",
-      "All five dice in each row must be placed.",
-      "Columns and diagonals do not count.",
-      "Earn +50 once, when the whole board is finished.",
-      "Missing this objective costs nothing.",
-    }
+    local objective = BoardObjectives.definition(event)
+    title = "BOARD EVENT: " .. objective.name:upper()
+    details = {}
+    for _, line in ipairs(objective.details) do details[#details + 1] = line end
+    details[#details + 1] = "Earn +" .. objective.points .. " once, when the whole board is finished."
+    details[#details + 1] = "Missing this objective costs nothing."
   elseif event.operation == "line" then
     title = "TURN EVENT: MARKED LINE"
     details = {

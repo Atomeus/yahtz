@@ -11,6 +11,83 @@ end
 local function objective(operation, target, line)
   return {active = {id = operation .. target, operation = operation, target = target, line = line}}
 end
+local BoardObjectives = require("game.board_objectives")
+local function filled(face)
+  local result = {}
+  for cell = 1, 25 do result[cell] = face end
+  return result
+end
+local samples = {}
+samples.four_corners = filled(2)
+samples.mirror = filled(2)
+samples.crossroads = filled(6)
+for index = 1, 5 do
+  samples.crossroads[10 + index] = index
+  samples.crossroads[(index - 1) * 5 + 3] = index
+end
+samples.twin_diagonals = filled(6)
+for index = 1, 5 do
+  samples.twin_diagonals[(index - 1) * 5 + index] = index
+  samples.twin_diagonals[(index - 1) * 5 + 6 - index] = index
+end
+samples.checkerboard = {}
+for cell = 1, 25 do samples.checkerboard[cell] = cell % 2 == 1 and 1 or 2 end
+samples.full_collection = {}
+for row, faces in ipairs({{2, 2, 2, 4, 6}, {3, 3, 3, 1, 1}, {1, 2, 3, 4, 5}, {6, 6, 6, 6, 6}, {1, 2, 4, 6, 1}}) do
+  for col, face in ipairs(faces) do samples.full_collection[(row - 1) * 5 + col] = face end
+end
+for _, definition in ipairs(BoardObjectives.options) do
+  assert(BoardObjectives.progress(empty(), definition.id) == 0, "Empty cells cannot satisfy " .. definition.id)
+  if samples[definition.id] then
+    local sample = samples[definition.id]
+    assert(BoardObjectives.progress(sample, definition.id) >= definition.target, definition.id)
+    local state = objective("sum", 7)
+    state.board = definition.id
+    local awards = Events.evaluate(state, sample, {}, {})
+    assert(#awards == 1 and awards[1].objective == definition.id and awards[1].points == definition.points)
+    local last = sample[25]
+    sample[25] = 0
+    assert(#Events.evaluate(state, sample, {}, {}) == 0, "Awards wait for board completion")
+    sample[25] = last
+  end
+end
+local check = samples.checkerboard
+for cell = 1, 25 do check[cell] = 3 - check[cell] end
+assert(BoardObjectives.progress(check, "checkerboard") == 25, "Either parity orientation qualifies")
+for cell = 1, 3 do check[cell] = 3 - check[cell] end
+assert(BoardObjectives.progress(check, "checkerboard") == 22)
+check[4] = 3 - check[4]
+assert(BoardObjectives.progress(check, "checkerboard") == 21)
+local mirror = samples.mirror
+mirror[1], mirror[6] = 3, 3
+assert(BoardObjectives.progress(mirror, "mirror") == 8)
+mirror[11] = 3
+assert(BoardObjectives.progress(mirror, "mirror") == 7)
+local corners = samples.four_corners
+corners[13] = 3
+assert(BoardObjectives.progress(corners, "four_corners") == 4)
+local cross = samples.crossroads
+cross[12] = 6
+assert(BoardObjectives.progress(cross, "crossroads") == 1, "Five distinct nonconsecutive faces are not a straight")
+local diagonals = samples.twin_diagonals
+diagonals[1] = 6
+assert(BoardObjectives.progress(diagonals, "twin_diagonals") == 2, "Diagonal faces need not be consecutive")
+diagonals[1] = 2
+assert(BoardObjectives.progress(diagonals, "twin_diagonals") == 1)
+local collection = empty()
+for index, face in ipairs({3, 3, 3, 1, 1}) do collection[index] = face end
+assert(BoardObjectives.progress(collection, "full_collection") == 1, "One full house cannot fill two requirements")
+local dealt = {}
+for seed = 1, 70 do
+  local state = Events.new(seed)
+  dealt[state.board] = true
+  assert(Events.new(seed).board == state.board, "Board dealing is deterministic")
+end
+for _, definition in ipairs(BoardObjectives.options) do assert(dealt[definition.id], "Every objective can be dealt") end
+local legacy_events = objective("sum", 7)
+assert(BoardObjectives.definition(legacy_events.board).id == "three_rows20")
+local saved_objective = Session.new("thrifty", 7):snapshot()
+assert(Session.resume(saved_objective):snapshot().objectives.board == saved_objective.objectives.board)
 local board = empty()
 board[1], board[2], board[6] = 3, 4, 4
 local event = objective("sum", 7)
@@ -113,6 +190,7 @@ assert(Summary.calculate(modern:view()).event_contribution == modern:view().obje
 
 -- Final confirmation can earn both event rewards, once, and persist them before animation.
 fixture = Session.new("thrifty", 1):snapshot()
+fixture.objectives.board = "three_rows20"
 fixture.turn, fixture.score = 5, 100
 fixture.board = board
 fixture.board[25] = 0

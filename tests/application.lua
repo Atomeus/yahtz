@@ -76,7 +76,7 @@ local function play()
   assert(State.session:view().objectives.active.id == saved.session.objectives.active.id)
   local board_objective, turn_objective = false, false
   for _, item in ipairs(text_positions) do
-    if item.value:match("^Board: rows =20") or item.value:match("^Turn: ") then
+    if item.value:match("^Board:") or item.value:match("^Turn: ") then
       local width, height = usagi.measure_text(item.value)
       assert(item.x + width <= 222 and item.y + height <= 270, "Objectives must fit below the board")
       board_objective = board_objective or item.value:match("^Board:") ~= nil
@@ -152,8 +152,8 @@ local function inspect_events()
   local before, boundary = State.session:view(), State.session:snapshot()
   local timer, selected, history = State.event_timer, State.selected, #State.session.history
   click(80, 237)
-  assert(has_label("BOARD EVENT: THREE ROWS"))
-  assert(has_label("Columns and diagonals do not count."))
+  assert(has_label("BOARD EVENT: " .. require("game.board_objectives").definition(State.session:view().objectives.board).name:upper()))
+  assert(has_label("Missing this objective costs nothing."))
   assert(#State.buttons == 1 and State.buttons[1].id == 45, "Only the close control is active")
   tick(2)
   click(250, 120) -- No underlying board, dice, or action controls.

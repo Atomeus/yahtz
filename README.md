@@ -47,6 +47,26 @@ The board labels rows R1?R5 and columns C1?C5. Ledger entries spell out the matc
 
 Use **Motion** on the main menu to switch between short dice bounces and reduced motion. Both preserve all scoring information. Dry dice clacks and rising score tones use generated WAV assets; sound volume is available in the pause menu.
 
+Each new board randomly receives one board objective. Its progress stays visible
+below the grid; select the objective for its full rules. Bonuses pay once at board
+completion, alongside ordinary scores and joker bonuses. Missing an objective
+has no penalty.
+
+| Board objective | Requirement | Bonus |
+| --- | --- | --- |
+| Three Rows | At least three rows total exactly 20 each | +50 |
+| Four Corners | Four corners and center all show the same face | +50 |
+| Crossroads | Middle row and column each contain a large straight, in any order | +75 |
+| Mirror, Mirror | At least 8 of 10 pairs match across the vertical centerline | +75 |
+| Twin Diagonals | Each long diagonal contains five different faces | +75 |
+| Full Collection | Three of a kind, full house, large straight, and Yahtzee on four distinct rows or columns | +100 |
+| Checkerboard | At least 22 cells follow alternating odd/even parity, either orientation | +100 |
+
+Full Collection uses ordinary combination requirements, independent of jokers.
+Its three of a kind accepts at least three matching dice, but each requirement
+needs a different line. Existing saved boards retain their objective; saves from
+before random objectives retain Three Rows.
+
 The game saves automatically when choosing a joker and confirming a turn. Returning during an unfinished turn restores its original dice and consumables, discarding unconfirmed rerolls, placements and Adjustments. Repeating the same actions produces the same dice. A completed board resumes at its results screen. Motion preference and score history are saved too.
 
 Select the back arrow and YAHTZ logo at the upper left during play to return to
