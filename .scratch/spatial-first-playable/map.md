@@ -14,3 +14,5 @@ Confirmed test boundaries: pure scoring and game-session behavior. Runtime prese
 
 
 [02 session](issues/02-session.md) resolved: pure session API owns deterministic RNG and committed turn-boundary snapshots; presentation resolves returned score events before adopting the prepared next turn.
+
+- [03 playable presentation](issues/03-playable.md) resolved: full tabletop UI, generated sounds, accessible motion option, remappable actions and boundary persistence. Validated domain suite, complete-board adapter smoke and actual engine gameplay.
