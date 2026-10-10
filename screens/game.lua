@@ -8,6 +8,7 @@ local draw_die = Drawing.die
 local ScoreDisplay = require("ui.score_display")
 local Feedback = require("ui.scoring_feedback")
 local JokerDetails = require("screens.joker_details")
+local EventDetails = require("screens.event_details")
 local Objectives = require("game.events")
 local BOARD_X, BOARD_Y, CELL = 42, 53, 36
 local GameScreen = {}
@@ -36,7 +37,16 @@ local function close_joker_details(state)
   state.focus = 41
 end
 
+local function close_event_details(state)
+  state.focus = state.event_info == "board" and 43 or 44
+  state.event_info = nil
+end
+
 function GameScreen.update(state, dt, save, offer_high_score)
+  if state.event_info then
+    if input.pressed(input.BTN2) then close_event_details(state) end
+    return
+  end
   if state.joker_info then
     if input.pressed(input.BTN2) then close_joker_details(state) end
     return
@@ -89,6 +99,10 @@ function GameScreen.draw(state, navigate, save, offer_high_score)
   local colors = Themes.colors()
   local function button(...) return Controls.button(state, ...) end
   local view = state.session:view()
+  if state.event_info and view.objectives then
+    EventDetails.draw(state, state.event_info, view.objectives.active, function() close_event_details(state) end)
+    return
+  end
   if state.joker_info then
     JokerDetails.draw(state, view.joker, function() close_joker_details(state) end)
     return
@@ -120,8 +134,16 @@ function GameScreen.draw(state, navigate, save, offer_high_score)
       if cell ~= 0 then objective_board[cell] = view.dice[die] end
     end
     if tentative then objective_board[target] = view.dice[state.selected] end
-    text("Board: rows =20 " .. Objectives.board_progress(objective_board) .. "/3 +50", 24, 235, colors.secondary)
-    text("Turn: " .. Objectives.label(view.objectives.active), 24, 251, colors.secondary)
+    text("Board: rows =20 " .. Objectives.board_progress(objective_board) .. "/3 +50 ?", 24, 235, colors.secondary)
+    text("Turn: " .. Objectives.label(view.objectives.active) .. " ?", 24, 247, colors.secondary)
+    button(43, 24, 232, 198, 12, nil, function()
+      sound("click")
+      state.event_info, state.focus = "board", 45
+    end)
+    button(44, 24, 244, 198, 12, nil, function()
+      sound("click")
+      state.event_info, state.focus = "turn", 45
+    end)
   end
   for line = 1, 5 do
     local marked = view.objectives and view.objectives.active.line

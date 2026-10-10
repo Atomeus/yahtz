@@ -73,6 +73,11 @@ New boards have one board event and a fresh turn event each turn, displayed belo
 the grid. The board event awards +50 when at least three finished rows each total
 exactly 20 pips. It pays only at board completion.
 
+Click either event label (marked with `?`) to read its objective, reward, timing,
+and eligibility rules. Both labels also support remappable direction/select
+controls. Back to game or the undo/back action closes the explanation. Reading
+preserves unconfirmed actions and pauses scoring animation.
+
 Five turn events are drawn without repeats from six objectives: orthogonally
 adjacent dice summing to 7 or 9, adjacent dice multiplying to 6 or 12 (each +10),
 and a marked row or column completed with exactly 15 or 20 pips (x2 ordinary

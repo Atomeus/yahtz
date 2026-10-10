@@ -106,6 +106,35 @@ local function change_theme_in_game()
   assert(State.selected == selected and State.event_timer == event_timer)
 end
 
+local function inspect_events()
+  local before, boundary = State.session:view(), State.session:snapshot()
+  local timer, selected, history = State.event_timer, State.selected, #State.session.history
+  click(80, 237)
+  assert(has_label("BOARD EVENT: THREE ROWS"))
+  assert(has_label("Columns and diagonals do not count."))
+  assert(#State.buttons == 1 and State.buttons[1].id == 45, "Only the close control is active")
+  tick(2)
+  click(250, 120) -- No underlying board, dice, or action controls.
+  assert(same(State.session:view(), before) and State.event_timer == timer)
+  key(input.BTN2)
+  assert(not State.event_info and State.focus == 43)
+  key(input.DOWN)
+  assert(State.focus == 44, "Directional navigation reaches the turn event")
+  key(input.BTN1)
+  assert(State.event_info == "turn" and has_label("Back to game"))
+  assert(has_label("Missing it costs nothing; events cannot be exchanged."))
+  for _, item in ipairs(text_positions) do
+    local width, height = usagi.measure_text(item.value)
+    assert(item.x >= 42 and item.x + width <= 438 and item.y >= 36 and item.y + height <= 234,
+      "Event explanations must fit inside the panel")
+  end
+  tick(2)
+  key(input.BTN1)
+  assert(not State.event_info and State.focus == 44)
+  assert(same(State.session:view(), before) and same(State.session:snapshot(), boundary))
+  assert(State.event_timer == timer and State.selected == selected and #State.session.history == history)
+end
+
 local function inspect_joker()
   local before, timer = State.session:view(), State.event_timer
   click(380, 28)
@@ -143,6 +172,7 @@ local function complete_board(enter_score)
       end
       assert(highlighted, "Completed line cells must be highlighted")
       inspect_joker()
+      inspect_events()
       change_theme_in_game()
       for _ = 1, 20 do
         if State.session:view().phase ~= "resolving" then break end
@@ -219,6 +249,7 @@ click(250, 70) -- Hold first die.
 assert(State.session:view().held[1])
 click(250, 120) -- Reroll.
 inspect_joker()
+inspect_events()
 change_theme_in_game()
 boot()
 click(180, 110) -- Continue discards unconfirmed actions on reload.
@@ -248,6 +279,7 @@ assert(State.session:view().placements[1] == 0)
 click(State.session:view().dice[State.selected] == 6 and 260 or 300, 158)
 assert(State.session:view().adjustments == 1)
 click(50, 60) -- Preserve an unconfirmed placement and its undo history too.
+inspect_events()
 change_theme_in_game()
 key(input.BTN2)
 assert(State.session:view().placements[1] == 0)
