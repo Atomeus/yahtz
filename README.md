@@ -1,215 +1,69 @@
 # Yahtz
 
-A small spatial dice game for Usagi 1.2.0. Run `usagi dev` from this directory (or `usagi run .`). The logical canvas is 480 x 270 pixels.
+Hi, I'm Ethan. I built this game for my wife, who grew up playing Yahtzee constantly on a little handheld gaming device.
 
-Each new board deals three distinct random jokers from a roster of fifteen; choose
-one to keep for all five turns. Returning to a saved board preserves its chosen
-joker and deterministic dice. The draft uses its own random generator and stays
-fixed while the selection screen is open.
+I thought a Yahtzee inspired dice game would be an easy place to start with some AI assisted coding. It was something familiar we could play around with and gradually make our own.
 
-| Joker | Ability |
-| --- | --- |
-| Pair Pay | +10 for each distinct repeated face in a line |
-| Short Run | Any four distinct faces qualify for a small straight |
-| Thrifty | +5 for each unused roll per turn |
-| Crossroads | Both complete corner-to-corner diagonals score once using ordinary combinations |
-| Little Ones | +5 for each actual 1 in a completed row or column |
-| Bookends | +10 when the first and last faces of a line match |
-| Rainbow | +15 for five distinct faces in a line |
-| Odd Todd | +15 for a line containing only odd faces |
-| Even Steven | +15 for a line containing only even faces |
-| Step Up | +5 for each adjacent pair differing by exactly 1, including overlapping zigzags |
-| Opposites | +5 for each adjacent pair totaling 7, including overlapping pairs |
-| Star | At board completion, +5 for each orthogonal neighbor matching the center, up to +20 |
-| Alternator | +5 per adjacent odd/even transition in a line, up to +20 |
-| Variety Show | At board completion, +10 per distinct ordinary row/column scoring category, up to +70 |
-| Double Feature | +20 per turn completing at least one new row and one new column, once per turn |
+This project was made primarily with AI assisted coding using Codex and skills from Matt Pocock. I supplied the ideas and made the decisions using interviews and grilling sessions. Codex used those guidelines to write the code.
 
-New joker values are initial playtest values. Bonuses count toward the final
-score, leaderboard, and color unlocks. Crossroads diagonal payouts and Star's
-board bonus appear in previews and the ledger and count toward joker contribution.
-Strongest line continues to compare rows and columns, including their line bonuses.
-Select the active joker name during play to read its rules and an example.
+So far, my wife has had a blast playing it, which is about the best outcome I could ask for!
 
-Variety Show counts the highest-value ordinary category awarded to each line;
-repeated categories and event multipliers add no extra categories. Double Feature
-includes the final turn, requires both directions in the same confirmation, and
-does not pay extra for additional lines. Its earned contribution persists across
-turn-boundary saves. These bonuses also count toward color unlocks.
+## The game
 
-The main menu shows the five highest local scores. Choose **Play now**, choose a joker, then fill the 5 x 5 board over five turns. Each turn starts with five dice and allows two rerolls. Click dice to hold them, then choose **Place dice** to end rolling early; the final roll enters placement automatically. Select an unplaced die and an empty board cell. The next unplaced die is selected automatically. Click a die placed this turn to pick it up again. Earlier turns stay fixed. The tray marks dice READY or PLACED during placement; placed dice appear as dark silhouettes.
+Yahtz takes familiar Yahtzee combinations and puts them on a 5 × 5 board. You roll five dice each turn, keep the ones you like, and arrange them to build scoring combinations across both rows and columns. Five turns fill the board.
 
-Two single-use **Adjustments** change the selected unplaced die by one within 1..6 during placement. **Undo** reverses placements and Adjustments before confirmation. Confirm after placing all five dice. The preview shows every newly completed line, joker bonus and resulting total; **Prev / Next** pages through longer previews.
+Each game session also gets a "joker" that changes how you score. It also has events to work toward during the game. The idea is to give more choices during the game to incentivize good placement. There are also local high scores and color themes to unlock along the way!
 
-Mouse controls cover every action. Keyboard and gamepad direction actions move the highlighted focus between dice, cells and buttons. Action 1 activates the focused control, action 2 undoes, and action 3 speeds through score resolution. The current mapped buttons appear at the bottom of the table. Open the built-in pause menu with Escape / Start to inspect or remap controls. No gameplay controls use raw keyboard keys.
+## Building it
 
-The board labels rows R1?R5 and columns C1?C5. Ledger entries spell out the matching Row or Col, category or joker bonus, and points; new entries also record their turn (T1?T5). During scoring, the matching board label is highlighted. Each complete row and column pays once, using its highest-value qualifying category. Straights ignore spatial order. Score events appear in sequence and count the displayed total up as each line and bonus pays; **Speed through** skips the wait, while **Earlier / Later** lets you inspect the complete event history on the results screen. **Main menu** returns to the leaderboard; **Play now** begins a fresh board and joker choice. Existing boards remain available through **Continue** or **View results**.
+I hadn't done much game development with AI assistants before this. Rather than jumping straight from a vague idea to code, I used skills to have the assistant interview me about what I wanted. We worked out the game's language, rules, and architecture, then captured the decisions in Markdown specs and plans.
 
-Use **Motion** on the main menu to switch between short dice bounces and reduced motion. Both preserve all scoring information. Dry dice clacks and rising score tones use generated WAV assets; sound volume is available in the pause menu.
+That gave me something to review and change before implementation, and gave both of us something to reference later without explaining everything again. My role has mostly been shaping the game, making decisions, and trying out what the agent builds. I was surprised by how easy it was to get something that looked decent and played well.
 
-Each new board randomly receives one board objective. Its progress stays visible
-below the grid; select the objective for its full rules. Bonuses pay once at board
-completion, alongside ordinary scores and joker bonuses. Missing an objective
-has no penalty.
+The game is written in Lua using [Usagi](https://usagiengine.com/), a small game engine written in Rust. If you've used LÖVE, the Lua scripting approach may feel familiar. Cross-platform support matters to me: I develop on Windows, and my wife uses a Mac. The goal is a little game she can play on her own computer.
 
-| Board objective | Requirement | Bonus |
-| --- | --- | --- |
-| Three Rows | At least three rows total exactly 20 each | +50 |
-| Four Corners | Four corners and center all show the same face | +50 |
-| Crossroads | Middle row and column each contain a large straight, in any order | +75 |
-| Mirror, Mirror | At least 8 of 10 pairs match across the vertical centerline | +75 |
-| Twin Diagonals | Each long diagonal contains five different faces | +75 |
-| Full Collection | Three of a kind, full house, large straight, and Yahtzee on four distinct rows or columns | +100 |
-| Checkerboard | At least 22 cells follow alternating odd/even parity, either orientation | +100 |
+This is still in development. I'm chipping away at it when I have time, mostly because it's fun.
 
-Full Collection uses ordinary combination requirements, independent of jokers.
-Its three of a kind accepts at least three matching dice, but each requirement
-needs a different line. Existing saved boards retain their objective; saves from
-before random objectives retain Three Rows.
+## Run it yourself
 
-The game saves automatically when choosing a joker and confirming a turn. Returning during an unfinished turn restores its original dice and consumables, discarding unconfirmed rerolls, placements and Adjustments. Repeating the same actions produces the same dice. A completed board resumes at its results screen. Motion preference and score history are saved too.
+You'll need Git and Usagi. You don't need to install Rust or Lua separately to run the game.
 
-Select the back arrow and YAHTZ logo at the upper left during play to return to
-the main menu. Continue restores your live turn exactly, including held dice,
-rerolls, unconfirmed placements, Adjustments, and undo history. Payouts pause in
-the menu and resume on Continue. The logo is also reachable with remappable
-direction/select actions. Closing and reopening the app still restores the last
-confirmed turn boundary.
+Install Usagi using the command for your system from its [official installation instructions](https://usagiengine.com/#install):
 
-Play now asks **Start a new board?** when a board is unfinished. Choose **Back**
-(or the remappable back action) to keep it, or **Start new board** to choose a new
-joker. The old board is replaced only when you select that joker; backing out of
-joker selection preserves it.
+**Windows (PowerShell)**
 
-Run all tests with `usagi run test.lua`. It prints each result and closes automatically when all suites pass. On failure, the window stays open and the console shows the error. No Python or separate Lua installation is required.
+```powershell
+irm https://usagiengine.com/install.ps1 | iex
+```
 
-Completed boards that qualify for the top five offer optional name entry using an on-screen keyboard, accessible with mouse or remappable direction/select actions. Names allow up to 12 letters, digits, or spaces; a blank name saves as PLAYER. Save score records the play once, or Skip dismisses the offer. Scores persist across boards and restarts. Equal scores keep the earlier entry first; when five entries exist, a new score must beat fifth place.
+**macOS / Linux**
 
-## Code organization
+```sh
+curl -fsSL https://usagiengine.com/install.sh | sh
+```
 
-Completed boards first show a results summary beside the board: total points,
-the comparison with the previous Table best, the strongest line (outlined on the
-board), and points added by the joker. Score details opens the full scoring ledger.
-Qualifying scores offer Save score; saving returns to the summary. Play again
-opens joker selection. Leaving a pending score offers Save score, Skip and continue,
-or Back. Previous-record comparisons survive saving and restarting; uncertain
-legacy comparisons and unavailable legacy joker contributions are omitted.
+Open a new terminal after installation if `usagi` isn't found. Then copy this repository's clone URL from GitHub's **Code** button and run:
 
-The engine entry point coordinates initialization, persistence, and screen transitions.
-Screen behavior and rendering live together in screens/main_menu.lua,
-screens/name_entry.lua, screens/joker_selection.lua, and screens/game.lua.
-Shared button activation and directional focus live in ui/controls.lua; drawing
-and sound helpers live in ui/drawing.lua. Joker presentation data lives in
-game/jokers.lua; shared row/column ID decoding lives in game/lines.lua. Scoring, game sessions, and high-score ranking remain separate
-domain modules.
+```sh
+git clone <repository-url> Yahtz
+cd Yahtz
+usagi run .
+```
 
-Run `usagi run test.lua` to execute the domain suites and the application
-lifecycle integration test. The latter simulates input and persistence through
-the engine callbacks; visual rendering and physical gamepad behavior still
-require a check in Usagi.
+Replace `<repository-url>` with the URL you copied. If you'd like to tinker, run `usagi dev .` instead to reload changes as you edit.
 
-## Events
+Choose **Play now**, pick a joker, and start rolling. You can play with a mouse, keyboard, or gamepad. Open the pause menu with Escape / Start to see or remap controls and adjust sound. Progress saves automatically after choosing a joker and confirming each turn.
 
-New boards have one board event and a fresh turn event each turn, displayed below
-the grid. The board event awards +50 when at least three finished rows each total
-exactly 20 pips. It pays only at board completion.
+## A little more detail
 
-Click either event label (marked with `?`) to read its objective, reward, timing,
-and eligibility rules. Both labels also support remappable direction/select
-controls. Back to game or the undo/back action closes the explanation. Reading
-preserves unconfirmed actions and pauses scoring animation.
+Run the tests with:
 
-Five turn events are drawn without repeats from six objectives: orthogonally
-adjacent dice summing to 7 or 9, adjacent dice multiplying to 6 or 12 (each +10),
-and a marked row or column completed with exactly 15 or 20 pips (x2 ordinary
-combination score). Arithmetic pairs must include at least one die placed this
-turn; several matching pairs still award only one bonus. Marked lines are drawn
-from unfinished lines without checking whether they can be completed this turn.
-Missing an event costs nothing, and events cannot be exchanged.
+```sh
+usagi run test.lua
+```
 
-Previews include event payouts, including the board reward on the final turn.
-Multipliers add one extra ordinary combination payout; they do not multiply
-joker bonuses, rule improvements, or other event rewards. Event contributions
-appear separately in the scoring ledger and results summary. A multiplier bonus
-also counts when choosing the strongest line.
+The test window closes when all suites pass. If something fails, it stays open and prints the error in the console.
 
-Objectives, the remaining event deck, and event RNG persist at turn boundaries.
-Event draws use a separate random stream so dice rolls retain their existing
-behavior. Older saved boards finish without events; start a new board to try them.
+The logical canvas is 480 × 270 pixels. Screens live in `screens/`, game rules in `game/`, and shared controls and drawing helpers in `ui/`. `main.lua` handles the engine lifecycle, saves, and screen transitions. More detailed gameplay and implementation notes are in [docs/gameplay-notes.md](docs/gameplay-notes.md).
 
-## Color themes
-
-Prestige colors continue beyond Golden Hour: Blueprint at 425, Forest at 450, Cyberpunk at 475,
-Sketchbook at 500, Ocean at 525, Paper at 550, and Dark at 575 points on one
-completed board. Sketchbook uses white and gray pages with blue ink; Paper uses
-cream and white surfaces with dark ink. Blueprint uses blue drafting surfaces,
-white lines, and yellow accents. Colors has Prev/Next pages, available with mouse
-or remappable controls. A New colors button on results lists every newly earned
-theme. Existing recorded scores count toward the added milestones on upgrade.
-Existing Candyland owners retain their unlock and selection as Sketchbook.
-Without events, the original jokers reach 500 with Short Run, 550 with Thrifty, and 600 with
-Pair Pay. The expanded roster offers other routes: an all-ones Little Ones board
-scores 750, and all-odd Odd Todd or all-even Even Steven boards can score 650.
-Event rewards add to combination and
-joker points, and count toward color unlocks and the leaderboard.
-
-Choose **Colors** from the main menu to select Classic Table, Midnight,
-Plum Velvet, or Golden Hour. Classic Table is available immediately; one completed
-board unlocks Midnight at 200 points, Plum Velvet at 300, and Golden Hour at 400.
-Requirements include joker points and do not depend on saving a leaderboard name.
-Locked colors show their required score. The preview
-shows the selected table, dice, and score colors; selection saves automatically.
-Hover any theme, or focus it with directional controls, to preview its colors
-without equipping it. Locked themes can also be clicked to keep their preview
-visible; they remain locked and show their required score. Clicking an available
-theme equips and saves it. Leaving the screen keeps your equipped colors.
-The choice applies across menus, gameplay, name entry, and score animation.
-Older or unknown saved theme IDs fall back to Classic.
-
-Themes use only the engine's default palette, with readable
-text, dark pips on light dice, and visible focus outlines. Contrast tests
-verify text and pip pairs at 4.5:1 or higher and control borders/focus at
-3:1 or higher against the default palette.
-
-Unlocks save permanently with the completed board, before final payouts finish.
-Results list newly unlocked colors without changing your selected theme. Leaving
-the summary acknowledges the notice; reopening results does not repeat it.
-Older saves credit recorded scores and saved completed boards, and preserve an
-existing selected color. Unfinished boards do not grant milestones.
-
-During a board, use **Colors** in the header, then **Back to game**.
-Changing colors preserves held dice, rerolls, unconfirmed placements,
-Adjustments, undo history, and the selected die. Scoring animation pauses
-while the Colors screen is open and continues when returning. Theme choices
-still save using the existing turn-boundary persistence rules.
-
-The in-game header aligns **Colors** with the clickable active joker name.
-Select the joker name to read its rules and an example, then **Back to game**
-(or the undo/back action) to close. Scoring pauses while reading. The Motion
-preference is available on the main menu, keeping gameplay controls focused
-on the board.
-
-On the placement-feedback experiment, hover an empty cell with a selected READY
-die, or move directional focus onto it, to outline its row and column. **IF PLACED**
-shows the hypothetical completed lines and resulting total, including dice already
-arranged this turn. The question-mark die is tentative; selecting the cell places
-it. Moving keyboard/gamepad focus takes over from a stationary mouse pointer.
-
-Confirmed lines sweep across rows or down columns, then send their points toward
-the total. Each line pays its base category before its joker bonus; the joker name
-is outlined during its contribution. Thrifty has a separate unused-roll label.
-A row-and-column payout gets a shared announcement while each contribution resolves
-separately. Reduced motion uses static cell outlines, payout labels, and immediate
-per-event totals. **Speed through** still finishes the entire sequence immediately.
-
-Background music is Vaporware by The Cynic Project (CC0; see music/CREDITS.txt).
-It loops continuously across screens at 16% track volume, gently ducking to 8%
-during gameplay score payouts. The pause menu music slider adjusts or mutes it
-independently of sound effects.
-
-Choose **Credits** at the bottom center of the main menu for the music attribution,
-CC0 license, and engine credit. Select **Main menu** or use the back action to return.
-
-Menu and labeled control activation plays a short generated click, including
-keyboard/gamepad selection. Disabled controls stay silent; board cells and dice
-keep their existing gameplay sounds. The pause-menu SFX slider controls both.
+Background music is _Vaporware_ by The Cynic Project, released under CC0. See [music credits](music/CREDITS.txt).
