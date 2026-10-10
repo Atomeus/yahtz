@@ -98,8 +98,8 @@ end
 local function inspect_joker()
   local before, timer = State.session:view(), State.event_timer
   click(380, 28)
-  assert(has_label("Each distinct repeated face adds +10 per line."))
-  assert(has_label("Example: 2,2,5,5,5 adds +20 bonus points."))
+  local details = require("game.jokers").get(before.joker).details
+  assert(has_label(details[1]) and has_label(details[3]))
   tick(2)
   assert(same(State.session:view(), before) and State.event_timer == timer)
   -- The dialog has no underlying gameplay targets.
@@ -109,7 +109,7 @@ local function inspect_joker()
   assert(State.screen == "game" and not State.joker_info and State.focus == 41)
 end
 
-local function complete_board()
+local function complete_board(enter_score)
   for turn = 1, 5 do
     click(365, 120) -- End rolling early.
     assert(State.session:view().phase == "placing")
@@ -143,6 +143,7 @@ local function complete_board()
   end
   assert(State.session:view().phase == "results")
   assert(has_label("BOARD COMPLETE!") and has_label("Save score"))
+  if enter_score == false then return end
   click(300, 182)
   assert(has_label("NEW HIGH SCORE!"))
 end
@@ -420,4 +421,69 @@ assert(State.theme == "plum" and not State.owned_colors.midnight)
 saved.theme = "golden" -- An unowned selection in the current schema falls back.
 boot()
 assert(State.theme == "classic")
+-- Exercise every drafted joker through the real application callbacks.
+-- Live reload retains State from the version before draft seeds existed.
+State.draft_seed = nil
+click(180, 80)
+assert(State.screen == "jokers" and #State.joker_choices == 3)
+State.draft_seed, State.joker_choices = nil, nil
+draw() -- Reload while already viewing the old joker selection screen.
+assert(#State.joker_choices == 3)
+local Jokers = require("game.jokers")
+local Summary = require("game.results_summary")
+for joker_index, joker in ipairs(Jokers) do
+  saved = {color_progression_version = 2, owned_colors = {classic = true, midnight = true},
+    reduced_motion = true}
+  boot()
+  local chosen_seed, slot
+  for seed = 1, 200 do
+    for index, id in ipairs(Jokers.deal((seed * 16807) % 2147483647)) do
+      if id == joker.id then chosen_seed, slot = seed, index; break end
+    end
+    if chosen_seed then break end
+  end
+  assert(chosen_seed, "Every joker must be offered through the new-board flow")
+  State.draft_seed = chosen_seed
+  click(180, 80)
+  local offered = table.concat(State.joker_choices, ",")
+  assert(#State.joker_choices == 3)
+  local visible = 0
+  for _, candidate in ipairs(Jokers) do if has_label(candidate.name) then visible = visible + 1 end end
+  assert(visible == 3, "Show exactly three offered jokers")
+  tick(1)
+  assert(table.concat(State.joker_choices, ",") == offered, "Redraws must not reroll the offer")
+  for _, item in ipairs(text_positions) do
+    for index, id in ipairs(State.joker_choices) do
+      local candidate = Jokers.get(id)
+      if item.value == candidate.name or item.value == candidate.text or item.value == candidate.hint then
+        local width, height = usagi.measure_text(item.value)
+        local top = 70 + (index - 1) * 53
+        assert(item.x >= 220 and item.x + width <= 462 and item.y >= top and item.y + height <= top + 51,
+          "Joker card text must fit with the engine's real line height")
+      end
+    end
+  end
+  if joker_index % 2 == 0 then
+    State.focus = slot
+    key(input.BTN1)
+  else click(230, 80 + (slot - 1) * 53) end
+  assert(State.session:view().joker == joker.id and saved.session.joker == joker.id)
+  boot()
+  click(180, 110)
+  assert(State.session:view().joker == joker.id, "Continue must preserve the selected joker")
+  complete_board(false)
+  local result = Summary.calculate(State.session:view())
+  assert(has_label(joker.name .. ": +" .. result.contribution), "Results must show accurate joker attribution")
+  local points = 0
+  for _, event in ipairs(saved.ledger) do points = points + event.points end
+  assert(points == saved.session.score, "Ledger payouts must account for the whole board")
+  local score = saved.session.score
+  boot()
+  click(180, 110)
+  assert(State.session:view().score == score and State.session:view().joker == joker.id)
+  assert(has_label(joker.name .. ": +" .. result.contribution))
+  click(390, 209) -- Play again opens pending-record prompt.
+  click(280, 131) -- Skip and continue to a fresh draft.
+  assert(State.screen == "jokers" and #State.joker_choices == 3)
+end
 print("lifecycle navigation, controls, full boards, resume, preferences and name entry passed")

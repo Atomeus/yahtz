@@ -63,9 +63,9 @@ local function event_text(event, turn)
   local name = event.category or event.joker or event.kind
   name = name:gsub("four_of_a_kind", "4 of a kind"):gsub("three_of_a_kind", "3 of a kind"):gsub("_", " ")
   if event.kind == "joker" then name = name .. " bonus" end
-  local line = event.line and event.line:gsub("column", "Col "):gsub("row", "Row ")
+  local line = event.line and Lines.label(event.line)
   local prefix = (event.turn or turn) and ("T" .. (event.turn or turn) .. " ") or ""
-  return prefix .. (line and (line .. ": ") or "Turn: ") .. name, event.points
+  return prefix .. (line and (line .. ": ") or (event.scope == "board" and "Board: " or "Turn: ")) .. name, event.points
 end
 
 local function draw_ledger(state, events, x, y, count, active, turn)
@@ -125,7 +125,10 @@ function GameScreen.draw(state, navigate, save, offer_high_score)
     if current then face = view.dice[current] end
     if face and face > 0 then draw_die(face, x + 3, y + 3, 28, current == state.selected, not current) end
     Feedback.cell(state, active_event, cell, x, y, CELL,
-      tentative and (math.floor((cell - 1) / 5) + 1 == target_row or (cell - 1) % 5 + 1 == target_col))
+      tentative and (math.floor((cell - 1) / 5) + 1 == target_row or (cell - 1) % 5 + 1 == target_col
+        or (view.joker == "crossroads" and
+          ((Lines.contains("diagonal1", target) and Lines.contains("diagonal1", cell))
+            or (Lines.contains("diagonal2", target) and Lines.contains("diagonal2", cell))))))
     if tentative and cell == target then
       text("?" .. view.dice[state.selected], x + 10, y + 12, colors.accent)
     end
@@ -164,7 +167,7 @@ function GameScreen.draw(state, navigate, save, offer_high_score)
       end
     end
     text(view.phase == "results" and "BOARD COMPLETE!"
-      or (active_event and active_event.kind == "joker" and (active_event.line and "JOKER CONTRIBUTION" or "THRIFTY: UNUSED ROLLS")
+      or (active_event and active_event.kind == "joker" and (active_event.joker == "thrifty" and "THRIFTY: UNUSED ROLLS" or "JOKER CONTRIBUTION")
         or (rows and columns and "ROW + COLUMN!" or "COUNTING THE TABLE")), 242, 118, colors.accent)
     draw_ledger(state, view.phase == "results" and state.ledger or state.events, 242, 138, 6, view.phase == "resolving" and state.event_index or nil, view.phase == "resolving" and view.turn or nil)
     button(31, 242, 214, 102, 19, "Earlier", function() scroll_ledger(state, -1, #(view.phase == "results" and state.ledger or state.events), 6) end)

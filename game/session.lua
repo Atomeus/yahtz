@@ -1,3 +1,5 @@
+local Jokers = require("game.jokers")
+local Lines = require("game.lines")
 local Session = {}
 Session.__index = Session
 local function copy(value)
@@ -18,7 +20,7 @@ local function initial_roll(state)
   state.rolls_used, state.phase = 1, "rolling"
 end
 function Session.new(joker, seed)
-  assert(joker == "pair_pay" or joker == "short_run" or joker == "thrifty", "unknown joker")
+  assert(Jokers.get(joker), "unknown joker")
   local state = {joker = joker, rng = ((math.floor(seed or 1) - 1) % 2147483646) + 1,
     board = {}, scored_lines = {}, score = 0, turn = 1, adjustments = 2, turn_bonus_total = 0}
   for i = 1, 25 do state.board[i] = 0 end
@@ -105,26 +107,26 @@ function Session:preview(die, cell)
   end
   local result = {lines = {}, events = {}, turn_bonus = 0, total = s.score, points = 0}
   if s.phase ~= "placing" then return result end
-  for direction = 1, 2 do
-    for line = 1, 5 do
-      local id = (direction == 1 and "row" or "column") .. line
-      local faces, complete = {}, true
-      for offset = 1, 5 do
-        local cell = direction == 1 and (line - 1) * 5 + offset or (offset - 1) * 5 + line
-        faces[offset] = board[cell]
-        if faces[offset] == 0 then complete = false end
+  for _, id in ipairs(Lines.ids(s.joker)) do
+    local faces, complete = Lines.faces(board, id), true
+    for _, face in ipairs(faces) do if face == 0 then complete = false end end
+    if complete and not s.scored_lines[id] then
+      local scored = Scoring.evaluate(faces, s.joker)
+      scored.id, scored.faces = id, faces
+      result.lines[#result.lines + 1] = scored
+      local diagonal = Lines.decode(id) == "diagonal"
+      result.events[#result.events + 1] = {kind = "line", line = id, category = scored.category,
+        points = scored.base_score, joker = diagonal and "crossroads" or nil}
+      if scored.joker_bonus > 0 then
+        result.events[#result.events + 1] = {kind = "joker", line = id, joker = s.joker, points = scored.joker_bonus}
       end
-      if complete and not s.scored_lines[id] then
-        local scored = Scoring.evaluate(faces, s.joker)
-        scored.id, scored.faces = id, faces
-        result.lines[#result.lines + 1] = scored
-        result.events[#result.events + 1] = {kind = "line", line = id, category = scored.category, points = scored.base_score}
-        if scored.joker_bonus > 0 then
-          result.events[#result.events + 1] = {kind = "joker", line = id, joker = s.joker, points = scored.joker_bonus}
-        end
-        result.points = result.points + scored.total
-      end
+      result.points = result.points + scored.total
     end
+  end
+  result.board_bonus = Scoring.board_bonus(board, s.joker)
+  if result.board_bonus > 0 then
+    result.events[#result.events + 1] = {kind = "joker", joker = s.joker, scope = "board", points = result.board_bonus}
+    result.points = result.points + result.board_bonus
   end
   if s.joker == "thrifty" then
     result.turn_bonus = (3 - s.rolls_used) * 5

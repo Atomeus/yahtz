@@ -1,4 +1,5 @@
 local Scoring = require("scoring")
+local Lines = require("game.lines")
 local Summary = {}
 
 function Summary.comparison(score, previous)
@@ -11,25 +12,23 @@ end
 
 function Summary.calculate(view)
   local result = {score = view.score, contribution = 0}
-  for direction = 1, 2 do
-    for index = 1, 5 do
-      local faces = {}
-      for offset = 1, 5 do
-        faces[offset] = view.board[direction == 1 and (index - 1) * 5 + offset or (offset - 1) * 5 + index]
-      end
-      local scored = Scoring.evaluate(faces, view.joker)
-      local line = {id = (direction == 1 and "row" or "column") .. index,
-        faces = faces, category = scored.category, total = scored.total}
+  for _, id in ipairs(Lines.ids(view.joker)) do
+    local faces = Lines.faces(view.board, id)
+    local scored = Scoring.evaluate(faces, view.joker)
+    local line = {id = id, faces = faces, category = scored.category, total = scored.total}
+    local diagonal = Lines.decode(id) == "diagonal"
+    if not diagonal then
       if not result.strongest or line.total > result.strongest.total then
         result.strongest, result.joint = line, false
       elseif line.total == result.strongest.total then result.joint = true end
-      if view.joker == "pair_pay" then
-        result.contribution = result.contribution + scored.joker_bonus
-      elseif view.joker == "short_run" then
-        result.contribution = result.contribution + scored.total - Scoring.evaluate(faces).total
-      end
+    end
+    if diagonal then
+      result.contribution = result.contribution + scored.total
+    else
+      result.contribution = result.contribution + scored.total - Scoring.evaluate(faces).total
     end
   end
+  result.contribution = result.contribution + Scoring.board_bonus(view.board, view.joker)
   if view.joker == "thrifty" then result.contribution = view.turn_bonus_total end
   return result
 end

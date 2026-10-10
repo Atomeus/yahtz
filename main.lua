@@ -1,7 +1,6 @@
 local Music = require("ui.music")
 local Themes = require("ui.themes")
 local ThemeSelection = require("screens.theme_selection")
-local HighScores = require("game.high_scores")
 local Session = require("game.session")
 local Controls = require("ui.controls")
 local MainMenu = require("screens.main_menu")
@@ -11,6 +10,17 @@ local JokerSelection = require("screens.joker_selection")
 local GameScreen = require("screens.game")
 local Results = require("screens.results")
 local ColorUnlocks = require("game.color_unlocks")
+local Jokers = require("game.jokers")
+
+local function new_seed()
+  return ((math.floor((usagi.elapsed or 0) * 1000000) + os.time() - 1) % 2147483646) + 1
+end
+
+local function deal_jokers()
+  -- Dev reload preserves State without rerunning _init from the new version.
+  State.draft_seed = ((State.draft_seed or new_seed()) * 16807) % 2147483647
+  State.joker_choices = Jokers.deal(State.draft_seed)
+end
 
 function _config()
   return { name = "Yahtz - The little dice table", game_id = "com.ethan.yahtz", game_width = 480, game_height = 270, pixel_perfect = true }
@@ -36,6 +46,7 @@ function _init()
   State = { theme = Themes.get(saved.theme).id, screen = "menu", focus = 1, time = 0, reduced_motion = saved.reduced_motion or false, selected = 1, buttons = {}, events = {}, event_index = 1, event_timer = 0, ledger_offset = 1, ledger = saved.ledger or {}, high_scores = saved.high_scores or {}, high_score_handled = saved.high_score_handled or false }
   State.results_previous_best, State.results_record_known = saved.results_previous_best, saved.results_record_known
   State.owned_colors, State.theme, State.pending_colors = ColorUnlocks.restore(saved)
+  State.draft_seed = new_seed()
   if saved.session then
     local ok, session = pcall(function() return Session.resume(saved.session) end)
     if ok and session then State.session = session end
@@ -44,6 +55,9 @@ function _init()
 end
 
 local function navigate(screen, focus)
+  if screen == "jokers" and State.screen ~= "jokers" then
+    deal_jokers()
+  end
   if State.screen == "results" and screen ~= "results" then
     State.pending_colors = {}
     save()
@@ -61,7 +75,10 @@ local function return_from_themes()
 end
 
 local function start(joker)
-  State.session = Session.new(joker, math.floor(usagi.elapsed * 1000000) + os.time())
+  local offered = false
+  for _, id in ipairs(State.joker_choices or {}) do if id == joker then offered = true end end
+  if not offered then return end
+  State.session = Session.new(joker, new_seed())
   State.screen, State.focus, State.selected = "game", 26, 1
   State.events, State.ledger = {}, {}
   State.pending_colors = {}
@@ -114,6 +131,8 @@ function _draw()
   elseif State.screen == "themes" then ThemeSelection.draw(State, return_from_themes, select_theme)
   elseif State.screen == "name_entry" then NameEntry.draw(State, navigate, save)
   elseif State.screen == "results" then Results.draw(State, navigate, save, enter_name)
-  elseif State.screen == "jokers" then JokerSelection.draw(State, navigate, start)
+  elseif State.screen == "jokers" then
+    if not State.joker_choices then deal_jokers() end
+    JokerSelection.draw(State, navigate, start)
   else GameScreen.draw(State, navigate, save, offer_high_score) end
 end

@@ -1,4 +1,4 @@
--- Pure scoring of a completed line. Joker IDs: pair_pay, short_run, thrifty.
+-- Pure scoring of completed lines and board-level joker bonuses.
 local Scoring = {}
 
 function Scoring.evaluate(faces, joker)
@@ -41,8 +41,36 @@ function Scoring.evaluate(faces, joker)
     for _, count in pairs(counts) do
       if count >= 2 then joker_bonus = joker_bonus + 10 end
     end
+  elseif joker == "little_ones" then
+    joker_bonus = (counts[1] or 0) * 5
+  elseif joker == "bookends" then
+    joker_bonus = faces[1] == faces[5] and 10 or 0
+  elseif joker == "rainbow" then
+    joker_bonus = distinct == 5 and 15 or 0
+  elseif joker == "odd_todd" or joker == "even_steven" then
+    local parity = joker == "odd_todd" and 1 or 0
+    local qualifies = true
+    for _, face in ipairs(faces) do if face % 2 ~= parity then qualifies = false end end
+    joker_bonus = qualifies and 15 or 0
+  elseif joker == "step_up" or joker == "opposites" then
+    for i = 1, 4 do
+      if (joker == "step_up" and math.abs(faces[i] - faces[i + 1]) == 1)
+        or (joker == "opposites" and faces[i] + faces[i + 1] == 7) then
+        joker_bonus = joker_bonus + 5
+      end
+    end
   end
   return {category = category, base_score = base_score, joker_bonus = joker_bonus, total = base_score + joker_bonus}
+end
+
+function Scoring.board_bonus(board, joker)
+  if joker ~= "star" then return 0 end
+  for cell = 1, 25 do if not board[cell] or board[cell] == 0 then return 0 end end
+  local bonus = 0
+  for _, cell in ipairs({8, 12, 14, 18}) do
+    if board[cell] == board[13] then bonus = bonus + 5 end
+  end
+  return bonus
 end
 
 return Scoring

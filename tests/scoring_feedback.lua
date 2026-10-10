@@ -44,3 +44,19 @@ assert(#texts == before, "Arriving label deposits into the score rather than cov
 ScoreDisplay.draw(state, view)
 assert(texts[#texts][1] == "10 POINTS", "Count begins on point arrival")
 print("directional sweeps, static feedback, point travel and score timing passed")
+-- Crossroads and Star identify their contributing cells in both motion modes.
+outlines, fills = {}, {}
+state.reduced_motion, state.event_timer = true, 0.1
+Feedback.cell(state, {kind = "line", line = "diagonal2", joker = "crossroads"}, 5, 186, 53, 36)
+Feedback.cell(state, {kind = "line", line = "diagonal2", joker = "crossroads"}, 1, 42, 53, 36)
+assert(#outlines == 1 and #fills == 0, "Only the active diagonal is outlined with reduced motion")
+outlines = {}
+for cell = 1, 25 do Feedback.cell(state, {kind = "joker", joker = "star"}, cell, 42, 53, 36) end
+assert(#outlines == 5, "Star identifies the center and its four orthogonal neighbors")
+outlines, fills = {}, {}
+state.reduced_motion, state.event_timer = false, 0.25
+Feedback.cell(state, {kind = "line", line = "diagonal2", joker = "crossroads"}, 5, 186, 53, 36)
+assert(#outlines == 1 and #fills == 1)
+local start = #texts
+Feedback.draw(state, {kind = "line", line = "diagonal2", joker = "crossroads", points = 50}, 42, 53, 36)
+assert(#texts == start + 1 and texts[#texts][1] == "+50")

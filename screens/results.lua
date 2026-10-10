@@ -74,7 +74,7 @@ function Results.draw(state, navigate, save, enter_name)
     local offset = state.results_offset or 1
     for i = offset, math.min(#state.ledger, offset + 9) do
       local event = state.ledger[i]
-      local label = (event.line or "Turn") .. " " .. (event.category or event.joker or event.kind)
+      local label = (event.line and Lines.label(event.line) or (event.scope == "board" and "Board" or "Turn")) .. " " .. (event.category or event.joker or event.kind)
       text("T" .. (event.turn or "?") .. " " .. label:gsub("_", " "):sub(1, 24), 242, 65 + (i - offset) * 14, colors.secondary)
       text("+" .. event.points, 425, 65 + (i - offset) * 14, colors.text)
     end
@@ -88,7 +88,7 @@ function Results.draw(state, navigate, save, enter_name)
   if comparison then text(comparison, 242, 62, colors.secondary) end
   text(summary.joint and "Joint strongest" or "Strongest line", 242, 87, colors.accent)
   local line = summary.strongest
-  text(line.id:gsub("column", "Col "):gsub("row", "Row ") .. "  " .. table.concat(line.faces, " "), 242, 103, colors.text)
+  text(Lines.label(line.id) .. "  " .. table.concat(line.faces, " "), 242, 103, colors.text)
   text(line.category:gsub("four_of_a_kind", "4 of a kind"):gsub("three_of_a_kind", "3 of a kind"):gsub("_", " ") .. "  +" .. line.total, 242, 119, colors.secondary)
   if summary.contribution ~= nil then
     text(Jokers.get(view.joker).name .. ": +" .. summary.contribution, 242, 145, colors.secondary)

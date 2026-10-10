@@ -1,5 +1,5 @@
 -- Run with: usagi run test.lua
-local suites = {"application", "color_unlocks", "results_summary", "high_scores", "music", "scoring", "scoring_feedback", "session", "themes"}
+local suites = {"application", "color_unlocks", "jokers", "results_summary", "high_scores", "music", "scoring", "scoring_feedback", "session", "themes"}
 local engine_gfx = gfx
 local results = {}
 

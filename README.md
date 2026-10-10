@@ -2,6 +2,32 @@
 
 A small spatial dice game for Usagi 1.2.0. Run `usagi dev` from this directory (or `usagi run .`). The logical canvas is 480 x 270 pixels.
 
+Each new board deals three distinct random jokers from a roster of twelve; choose
+one to keep for all five turns. Returning to a saved board preserves its chosen
+joker and deterministic dice. The draft uses its own random generator and stays
+fixed while the selection screen is open.
+
+| Joker | Ability |
+| --- | --- |
+| Pair Pay | +10 for each distinct repeated face in a line |
+| Short Run | Any four distinct faces qualify for a small straight |
+| Thrifty | +5 for each unused roll per turn |
+| Crossroads | Both complete corner-to-corner diagonals score once using ordinary combinations |
+| Little Ones | +5 for each actual 1 in a completed row or column |
+| Bookends | +10 when the first and last faces of a line match |
+| Rainbow | +15 for five distinct faces in a line |
+| Odd Todd | +15 for a line containing only odd faces |
+| Even Steven | +15 for a line containing only even faces |
+| Step Up | +5 for each adjacent pair differing by exactly 1, including overlapping zigzags |
+| Opposites | +5 for each adjacent pair totaling 7, including overlapping pairs |
+| Star | At board completion, +5 for each orthogonal neighbor matching the center, up to +20 |
+
+New joker values are initial playtest values. Bonuses count toward the final
+score, leaderboard, and color unlocks. Crossroads diagonal payouts and Star's
+board bonus appear in previews and the ledger and count toward joker contribution.
+Strongest line continues to compare rows and columns, including their line bonuses.
+Select the active joker name during play to read its rules and an example.
+
 The main menu shows the five highest local scores. Choose **Play now**, choose a joker, then fill the 5 x 5 board over five turns. Each turn starts with five dice and allows two rerolls. Click dice to hold them, then choose **Place dice** to end rolling early; the final roll enters placement automatically. Select an unplaced die and an empty board cell. The next unplaced die is selected automatically. Click a die placed this turn to pick it up again. Earlier turns stay fixed. The tray marks dice READY or PLACED during placement; placed dice appear as dark silhouettes.
 
 Two single-use **Adjustments** change the selected unplaced die by one within 1..6 during placement. **Undo** reverses placements and Adjustments before confirmation. Confirm after placing all five dice. The preview shows every newly completed line, joker bonus and resulting total; **Prev / Next** pages through longer previews.
@@ -49,8 +75,9 @@ completed board. Paper uses light surfaces and dark ink; the other prestige
 palettes use dark surfaces. Colors has Prev/Next pages, available with mouse or
 remappable controls. A New colors button on results lists every newly earned
 theme. Existing recorded scores count toward the added milestones on upgrade.
-The highest tiers are deliberately rare: Short Run tops out at 500, Thrifty at
-550, and Pair Pay at 600.
+The original jokers reach 500 with Short Run, 550 with Thrifty, and 600 with
+Pair Pay. The expanded roster offers other routes: an all-ones Little Ones board
+scores 750, and all-odd Odd Todd or all-even Even Steven boards can score 650.
 
 Choose **Colors** from the main menu to select Classic Table, Midnight,
 Plum Velvet, or Golden Hour. Classic Table is available immediately; one completed
