@@ -36,7 +36,7 @@ ScoreDisplay.draw(state, view)
 assert(texts[#texts][1] == "60 POINTS", "Full contribution arrives before advancing")
 state.event_timer = 0.44
 Feedback.draw(state, state.events[1], 42, 53, 36)
-assert(texts[#texts][2] > origin[2] and texts[#texts][3] < origin[3], "Points travel toward the total")
+assert(texts[#texts][2] < origin[2] and texts[#texts][3] < origin[3], "Points travel toward the total")
 local before = #texts
 state.event_timer = 0.45
 Feedback.draw(state, state.events[1], 42, 53, 36)

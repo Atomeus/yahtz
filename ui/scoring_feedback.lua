@@ -42,7 +42,7 @@ function Feedback.draw(state, event, board_x, board_y, cell_size)
   if not state.reduced_motion then
     if state.event_timer >= Feedback.count_start then return end
     local progress = math.max(0, math.min(1, (state.event_timer - Feedback.sweep_duration) / Feedback.flight_duration))
-    x, y = x + (285 - x) * progress, y + (32 - y) * progress
+    x, y = x + (209 - x) * progress, y + (32 - y) * progress
   end
   local w, h = usagi.measure_text(label)
   gfx.rect_fill(x - 2, y - 2, w + 4, h + 4, colors.panel)

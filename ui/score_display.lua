@@ -33,7 +33,7 @@ function ScoreDisplay.draw(state, view)
 
   local label = tostring(score) .. " POINTS"
   local width, height = usagi.measure_text(label)
-  local x, y = 242 - width * (scale - 1) / 2, 20 - height * (scale - 1) / 2
+  local x, y = 176 - width * (scale - 1) / 2, 20 - height * (scale - 1) / 2
   if scale > 1 then
     gfx.text_ex(label, x + 1, y + 1, scale, rotation, colors.panel, 1)
   end

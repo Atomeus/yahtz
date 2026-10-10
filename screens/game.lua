@@ -124,7 +124,7 @@ function GameScreen.draw(state, navigate, save, offer_high_score)
   end
   text("YAHTZ", 38, 17, logo_color)
   text("TURN " .. math.min(view.turn, 5) .. " / 5", 102, 20, colors.secondary)
-  button(40, 176, 13, 56, 20, "Colors", function()
+  button(40, 242, 13, 56, 20, "Colors", function()
     navigate("themes", 1)
   end)
   ScoreDisplay.draw(state, view)

@@ -133,7 +133,7 @@ local function change_theme_in_game()
   local before = State.session:view()
   local boundary = State.session:snapshot()
   local event_timer, selected = State.event_timer, State.selected
-  click(200, 24)
+  click(270, 24)
   assert(has_label("CHOOSE YOUR COLORS") and has_label("Back to game"))
   tick(2) -- Scoring must pause while choosing colors.
   assert(State.event_timer == event_timer)
