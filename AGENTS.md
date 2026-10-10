@@ -25,3 +25,7 @@ When adding or changing features, keep modules cohesive:
 - Reuse shared controls, drawing helpers, and semantic theme colors. Pass explicit state and actions to screens; avoid hidden dependencies on global State.
 - Extract when responsibilities change for different reasons or logic is duplicated. Keep closely related helpers together; avoid a file per function or a generic framework without a concrete need.
 - Preserve existing behavior and save compatibility during restructuring, and verify behavior through existing domain and lifecycle test seams.
+
+## Scratchpad experiments
+
+Before implementing or prototyping an idea from .scratch/, create or switch to a dedicated feature or experiment branch and tell the user its name. Keep main and unrelated integration branches untouched. Planning notes may be written on the current branch.
