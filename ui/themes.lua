@@ -1,6 +1,6 @@
 local Themes = {}
 
--- Palette colors only. Dark surfaces keep small bitmap text easy to read.
+-- Palette colors only. Semantic ink colors keep text readable on each surface.
 -- Definitions are independent of ownership/unlock rules.
 Themes.options = {
   {
@@ -40,10 +40,13 @@ Themes.options = {
     secondary = gfx.COLOR_PINK, die = gfx.COLOR_YELLOW,
   },
   {
-    id = "candyland", name = "Candyland", description = "Purple felt, pink dice, cream accents",
-    table = gfx.COLOR_DARK_PURPLE, panel = gfx.COLOR_DARK_BLUE,
-    frame = gfx.COLOR_PEACH, accent = gfx.COLOR_PEACH,
-    secondary = gfx.COLOR_WHITE, die = gfx.COLOR_PINK,
+    -- Keep the saved identity so Candyland owners retain their selection.
+    id = "candyland", name = "Sketchbook", description = "White pages, pencil gray, blue ink",
+    table = gfx.COLOR_WHITE, panel = gfx.COLOR_LIGHT_GRAY,
+    frame = gfx.COLOR_DARK_GRAY, accent = gfx.COLOR_DARK_BLUE,
+    text = gfx.COLOR_BLACK, secondary = gfx.COLOR_DARK_BLUE,
+    muted = gfx.COLOR_DARK_BLUE, border = gfx.COLOR_DARK_BLUE,
+    die = gfx.COLOR_WHITE,
   },
   {
     id = "ocean", name = "Ocean", description = "Deep blue felt, pale dice, white foam",
@@ -64,6 +67,14 @@ Themes.options = {
     table = gfx.COLOR_BLACK, panel = gfx.COLOR_BLACK,
     frame = gfx.COLOR_DARK_GRAY, accent = gfx.COLOR_WHITE,
     secondary = gfx.COLOR_LIGHT_GRAY, die = gfx.COLOR_LIGHT_GRAY,
+  },
+  {
+    id = "blueprint", name = "Blueprint", description = "Blue drafting sheet, white lines, yellow marks",
+    table = gfx.COLOR_DARK_BLUE, panel = gfx.COLOR_DARK_BLUE,
+    frame = gfx.COLOR_BLUE, accent = gfx.COLOR_YELLOW,
+    text = gfx.COLOR_WHITE, secondary = gfx.COLOR_WHITE,
+    muted = gfx.COLOR_LIGHT_GRAY, border = gfx.COLOR_WHITE,
+    die = gfx.COLOR_WHITE,
   },
 }
 

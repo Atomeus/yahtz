@@ -470,33 +470,33 @@ end
 click(360, 230)
 assert(State.session:view().phase == "resolving" and saved.session.score == 600)
 assert(saved.owned_colors.midnight and saved.owned_colors.plum and saved.owned_colors.golden)
-assert(#saved.pending_colors == 9 and saved.theme == "classic")
+assert(#saved.pending_colors == 10 and saved.theme == "classic")
 boot() -- Restart before the final payouts finish.
 click(80, 100)
-assert(has_label("New colors: 9"))
+assert(has_label("New colors: 10"))
 tick(5)
-assert(has_label("New colors: 9"), "Notices remain visible while viewing the summary")
+assert(has_label("New colors: 10"), "Notices remain visible while viewing the summary")
 click(100, 247)
 assert(has_label("NEW COLORS UNLOCKED"))
-for _, name in ipairs({"Midnight", "Plum Velvet", "Golden Hour", "Forest", "Cyberpunk", "Candyland", "Ocean", "Paper", "Dark"}) do
+for _, name in ipairs({"Midnight", "Plum Velvet", "Golden Hour", "Forest", "Cyberpunk", "Sketchbook", "Ocean", "Paper", "Dark", "Blueprint"}) do
   assert(has_label(name), "Every unlocked theme must appear in the notice")
 end
 assert(#saved.pending_colors == 0)
 click(280, 246)
 -- Restore pending notices to separately exercise Back and Skip navigation.
-saved.pending_colors = {"midnight", "plum", "golden", "forest", "cyberpunk", "candyland", "ocean", "paper", "dark"}
+saved.pending_colors = {"midnight", "plum", "golden", "forest", "cyberpunk", "candyland", "ocean", "paper", "dark", "blueprint"}
 boot()
 click(80, 100)
 click(280, 209)
 click(290, 165) -- Back from pending-score prompt does not acknowledge notices.
-assert(has_label("New colors: 9"))
+assert(has_label("New colors: 10"))
 click(280, 209)
 click(280, 131) -- Explicitly skip recording.
 assert(saved.high_score_handled and #saved.high_scores == 0)
 assert(saved.owned_colors.golden and #saved.pending_colors == 0)
 boot()
 click(80, 100)
-assert(not has_label("New colors: 9") and State.owned_colors.golden)
+assert(not has_label("New colors: 10") and State.owned_colors.golden)
 click(280, 209)
 click(220, 100)
 click(40, 190)
@@ -535,6 +535,9 @@ click(40, 76)
 assert(saved.theme == "paper")
 click(40, 114)
 assert(saved.theme == "dark")
+click(40, 152)
+assert(saved.theme == "blueprint")
+click(40, 114)
 click(280, 50)
 assert(has_label("2 / 3"))
 boot()
