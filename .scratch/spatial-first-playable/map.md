@@ -12,3 +12,5 @@ The request to build confirms the agreed spec. Tickets: 01 scoring -> 02 session
 Confirmed test boundaries: pure scoring and game-session behavior. Runtime presentation checked separately.
 
 
+
+[02 session](issues/02-session.md) resolved: pure session API owns deterministic RNG and committed turn-boundary snapshots; presentation resolves returned score events before adopting the prepared next turn.
