@@ -1,0 +1,70 @@
+# Events design session
+
+Status: resolved
+
+Historical design discussion. The accepted design is implemented on main.
+See [the current spec](spec.md) and [board-objective expansion](../board-objectives/spec.md).
+
+## Starting idea
+
+Events reward particular die placements or pip counts. Explore addition and multiplication events alongside the existing board, combination scoring, and persistent jokers.
+
+## Design status
+
+Initial design implemented in `7a69073`; explanatory panels followed in
+`1d96d6a`. Seven randomized board objectives are implemented in `7f65f3f`.
+The rules below preserve the original discussion; the current spec records
+the expanded scope.
+
+## Agreed rules
+
+- Include arithmetic placement puzzles and reward modifiers as separate event types; user accepted the proposed arithmetic direction.
+- One hard event lasts for the entire board (the user's "game").
+- Easier events change each turn to influence dice and placement choices.
+- Board event and turn event are the agreed names for the two durations.
+- Reveal the board event before the first roll and each turn event before that turn's first roll.
+- Turn events must involve at least one die placed during the current turn. Previously placed dice may help, but cannot satisfy a turn event by themselves.
+- Board events examine the finished board.
+- Each event pays once: turn events on placement confirmation; the board event at board completion. Rearrangements update previews without awarding points.
+- Multiplier events target a specific completed row or column. Multiply its ordinary combination score; joker bonuses are added separately, and event multipliers do not multiply one another.
+- Events are automatically dealt: one board event at board start and a fresh turn event each turn. No repeated turn-event condition on a board; location does not change its identity.
+- Easy events usually require two or three dice. Hard events require several coordinated lines or placements. Difficulty comes from planning rather than only larger numeric thresholds.
+- Arithmetic placement events use distinct orthogonally adjacent cells, with order irrelevant. Turn objectives require at least one newly placed die. Multiple qualifying patterns still pay once.
+- Initial playtest payouts: +10 for easy arithmetic events, x2 ordinary combination score for a marked-line event, and +50 for a hard board event. Board events are additive initially.
+- Randomness may help or hinder. Marked-line events randomly target an unfinished row or column, with no further solvability filtering. Events may require unlikely dice or target a line with too many empty cells to finish that turn.
+- The same exact objective does not repeat on a board, but different targets from the same family may appear (for example adjacent sum 7 and adjacent sum 9). For marked-line events, define identity by objective condition rather than location so a different marked line does not permit the same condition to repeat.
+
+## Initial event set
+
+Deal five turn events without replacement from these six objectives, one before each turn's first roll:
+
+| Objective | Reward |
+| --- | --- |
+| Two orthogonally adjacent dice sum to 7 | +10 |
+| Two orthogonally adjacent dice sum to 9 | +10 |
+| Two orthogonally adjacent dice multiply to 6 | +10 |
+| Two orthogonally adjacent dice multiply to 12 | +10 |
+| Complete the marked row or column with exactly 15 pips | x2 that line's ordinary combination score |
+| Complete the marked row or column with exactly 20 pips | x2 that line's ordinary combination score |
+
+The initial board event is: finish at least three rows with exactly 20 pips each, for +50 at board completion. Columns do not count toward this objective. Start with this single hard objective; expand variety after playtesting.
+
+## Failure and presentation
+
+- Unmet turn events expire for zero points. There is no penalty or event exchange action. An unmet board event likewise earns no bonus.
+- Show the active board and turn objectives during play.
+- Preview event payouts before confirmation, including the board-event payout on the final turn.
+- List event contributions separately in results and make multiplier bonuses additive in the explanation: an ordinary 25-point line with x2 earns 25 line points plus 25 event points. Joker bonuses remain separate.
+- Final-turn confirmation can earn both the turn-event payout and the board-event payout; neither multiplies the other.
+
+## Deferred to playtesting
+
+- Tune payouts and assess whether the three-row board objective is appropriately difficult.
+- Assess the frequency of unachievable events under the agreed random-dealing policy.
+- Additional event types and hard board objectives are outside this initial set.
+
+## Review conclusion
+
+All accepted event work is implemented. Additional event types remain optional.
+Playtest objective completion rates, unachievable turn events, reward values,
+and high-score/color-unlock pacing before increasing the event pool further.

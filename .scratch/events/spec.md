@@ -2,7 +2,7 @@
 
 Status: resolved
 
-Implemented on `feature/events` in the dedicated `.worktrees/events` worktree.
+Implemented and merged into main (`7a69073`, `1d96d6a`, and `7f65f3f`).
 
 ## Starting idea
 
@@ -23,7 +23,7 @@ Initial design agreed and implemented at the user's request. Reward balance rema
 - Board events examine the finished board.
 - Each event pays once: turn events on placement confirmation; the board event at board completion. Rearrangements update previews without awarding points.
 - Multiplier events target a specific completed row or column. Multiply its ordinary combination score; joker bonuses are added separately, and event multipliers do not multiply one another.
-- Events are automatically dealt: one board event at board start and a fresh turn event each turn. No repeated turn event on a board; exact repeat identity remains to define.
+- Events are automatically dealt: one board event at board start and a fresh turn event each turn. No repeated turn-event condition on a board; changing its marked location does not permit a repeat.
 - Easy events usually require two or three dice. Hard events require several coordinated lines or placements. Difficulty comes from planning rather than only larger numeric thresholds.
 - Arithmetic placement events use distinct orthogonally adjacent cells, with order irrelevant. Turn objectives require at least one newly placed die. Multiple qualifying patterns still pay once.
 - Initial playtest payouts: +10 for easy arithmetic events, x2 ordinary combination score for a marked-line event, and +50 for a hard board event. Board events are additive initially.
@@ -43,7 +43,12 @@ Deal five turn events without replacement from these six objectives, one before 
 | Complete the marked row or column with exactly 15 pips | x2 that line's ordinary combination score |
 | Complete the marked row or column with exactly 20 pips | x2 that line's ordinary combination score |
 
-The initial board event is: finish at least three rows with exactly 20 pips each, for +50 at board completion. Columns do not count toward this objective. Start with this single hard objective; expand variety after playtesting.
+Each new board randomly receives one of seven board events. See
+[the expansion spec](../board-objectives/spec.md) and the README rule table:
+Three Rows (+50), Four Corners (+50), Crossroads (+75), Mirror, Mirror (+75),
+Twin Diagonals (+75), Full Collection (+100), and Checkerboard (+100).
+Progress includes tentative placements. Older event saves without a board-event
+identity retain Three Rows; saves without events remain unchanged.
 
 ## Failure and presentation
 
@@ -57,22 +62,19 @@ The initial board event is: finish at least three rows with exactly 20 pips each
 
 - Tune payouts and assess whether the three-row board objective is appropriately difficult.
 - Assess the frequency of unachievable events under the agreed random-dealing policy.
-- Additional event types and hard board objectives are outside this initial set.
+- Further event types are optional future scope; the six accepted board-objective additions are implemented.
 
-## Integration
+## Implementation and review
 
-- Base commit: `a27fd5f` (before the concurrent joker implementation).
-- Event rules live in `game/events.lua`; `game/session.lua` invokes them for new turns, previews, and confirmation.
-- Persistence adds an optional `objectives` field to session snapshots. Legacy boards lacking it continue without events. No changes to application persistence or the save envelope are needed.
-- Event evaluation consumes ordinary completed rows/columns and does not define joker rules. Multipliers explicitly evaluate faces without a joker so joker rule improvements are not multiplied.
-- `game/results_summary.lua` includes recorded event line bonuses in strongest-line selection and reports event contribution separately.
-- Expect integration overlaps with joker work in session lifecycle, game rendering, results attribution, glossary, and test-suite registration. Preserve both features rather than replacing either path.
-- Domain and application lifecycle tests cover event payouts, previews/undo, RNG independence, boundary reload, old saves, visibility, and results attribution.
+- `game/events.lua`: turn dealing, eligibility, additive event payouts.
+- `game/board_objectives.lua`: seven board rules, progress, labels, and details.
+- `game/session.lua`: reversible previews, once-only confirmation, persistence.
+- `screens/game.lua` and `screens/event_details.lua`: progress and rule explanations.
+- `game/results_summary.lua`: event contribution and line-specific event bonuses.
+- `tests/events.lua` and `tests/application.lua`: qualification boundaries,
+  distinct-line collection matching, random dealing, persistence, compatibility,
+  final-turn combined rewards, and integration with every joker.
 
-## Validation
-
-All ten suites pass with `usagi run test.lua` on Usagi 1.3.3, including the event suite and application lifecycle checks. The same suites also pass under the installed Lupa Lua runtime. Objective bounds are checked against the 480x270 canvas and engine text measurements; manual visual playtesting and reward balance remain outstanding.
-
-## Primary worktree experiment
-
-Integrated onto `experiment/events` from joker-enabled `main` at `ca5bbd7`, without advancing main. Preserved the twelve-joker draft, diagonal lines, Star attribution, and event contributions. Added a regression covering event multipliers with every joker. The combined runner includes eleven suites.
+All accepted requirements are implemented. There is no required feature left
+before playtesting. Reward tuning and manual visual/physical gamepad checks
+remain validation work, not evidence that the rules are balanced.
