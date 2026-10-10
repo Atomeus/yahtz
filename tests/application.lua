@@ -68,7 +68,7 @@ local function boot()
   draw()
 end
 local function play()
-  click(180, 80)
+  click(240, 60)
   if has_label("Start a new board?") then click(160, 170) end
   assert(has_label("PICK YOUR JOKER"))
   click(230, 80)
@@ -110,17 +110,19 @@ local function visit_menu_in_game(use_actions)
   assert(State.event_timer == timer and State.event_index == index)
   assert(same(State.session:view(), live) and same(State.session:snapshot(), boundary))
   assert(same(saved, persisted), "Returning to the menu must not save unconfirmed actions")
-  click(180, 80)
+  click(240, 60)
   assert(has_label("Start a new board?") and #State.buttons == 2)
   assert(State.focus == 11, "Replacement confirmation defaults to Back")
-  click(330, 80) -- Underlying menu actions must not be active.
+  click(220, 100) -- Underlying menu actions must not be active.
   assert(has_label("Start a new board?") and State.screen == "menu")
   click(290, 170)
   assert(has_label("Continue") and not has_label("Start a new board?"))
-  click(180, 80)
+  click(240, 60)
   key(input.BTN2)
   assert(not has_label("Start a new board?"), "The remappable back action dismisses confirmation")
   key(input.DOWN)
+  assert(State.focus == 3)
+  key(input.LEFT)
   assert(State.focus == 2)
   key(input.BTN1)
   assert(State.screen == "game" and State.focus == 46)
@@ -233,7 +235,19 @@ end
 boot()
 assert(has_label("HIGH SCORES"))
 assert(State.theme == "classic", "Old saves must default to Classic")
-click(330, 80)
+assert(has_label("No board yet"))
+local menu_controls = {}
+for _, control in ipairs(State.buttons) do menu_controls[control.id] = control end
+assert(menu_controls[1].x == 24 and menu_controls[1].w == 432,
+  "Play spans the menu with equal side margins")
+for id = 2, 4 do
+  assert(menu_controls[id].y == 84 and menu_controls[id].w == 136,
+    "Secondary menu controls share one evenly sized row")
+end
+assert(menu_controls[2].enabled == false, "Continue is disabled without a board")
+click(80, 100)
+assert(has_label("HIGH SCORES") and State.session == nil)
+click(220, 100)
 assert(has_label("CHOOSE YOUR COLORS"))
 assert(has_label("Reach 200 points") and has_label("Reach 300 points") and has_label("Reach 400 points"))
 for _, item in ipairs(text_positions) do
@@ -277,7 +291,7 @@ for index, theme in ipairs(Themes.options) do
 end
 click(40, 250)
 assert(State.theme == "classic" and has_label("HIGH SCORES"))
-click(330, 80)
+click(220, 100)
 assert(State.colors_preview == "classic", "Reopening Colors starts with the equipped theme")
 -- Credit a legacy record, then keep the remaining lifecycle fixtures independent of ranking.
 saved = {high_scores = {{name = "LEGACY", score = 400}}}
@@ -285,7 +299,7 @@ boot()
 assert(saved.owned_colors.golden and #saved.pending_colors == 0)
 saved.high_scores = {}
 boot()
-click(330, 80)
+click(220, 100)
 -- Directional actions reach and activate themes without a mouse.
 key(input.DOWN)
 key(input.BTN1)
@@ -302,13 +316,13 @@ assert(State.theme == "golden", "Theme must persist after reload")
 saved.theme = "removed-theme"
 boot()
 assert(State.theme == "classic", "Unknown saved themes must fall back safely")
-click(330, 110) -- Motion now belongs to the main menu.
-assert(saved.reduced_motion and has_label("Motion: reduced"))
+click(380, 100) -- Motion now belongs to the main menu.
+assert(saved.reduced_motion and has_label("Reduced"))
 boot()
 assert(State.reduced_motion)
 key(input.BTN1) -- Default main-menu focus.
 assert(has_label("PICK YOUR JOKER"))
-assert(not has_label("Motion: reduced"))
+assert(not has_label("Reduced"))
 click(230, 80)
 local original = table.concat(saved.session.dice, ",")
 click(250, 70) -- Hold first die.
@@ -319,7 +333,7 @@ inspect_joker()
 inspect_events()
 change_theme_in_game()
 boot()
-click(180, 110) -- Continue discards unconfirmed actions on reload.
+click(80, 100) -- Continue discards unconfirmed actions on reload.
 assert(table.concat(State.session:view().dice, ",") == original)
 assert(not State.session:view().held[1] and State.reduced_motion)
 click(365, 120)
@@ -355,7 +369,7 @@ key(input.BTN2)
 assert(State.session:view().adjustments == 2)
 -- Start a fresh board through the menu after reload.
 boot()
-click(330, 80)
+click(220, 100)
 click(40, 152)
 click(40, 250)
 play()
@@ -376,12 +390,12 @@ assert(has_label("First recorded board") and saved.results_previous_best == fals
 local score = saved.high_scores[1].score
 boot()
 assert(has_label(saved.high_scores[1].name))
-click(180, 110)
+click(80, 100)
 assert(has_label("BOARD COMPLETE!") and not has_label("NEW HIGH SCORE!"))
 assert(has_label("First recorded board"))
 assert(#saved.high_scores == 1 and saved.high_scores[1].score == score)
 boot()
-click(330, 80)
+click(220, 100)
 click(40, 190)
 click(40, 250)
 play()
@@ -391,12 +405,12 @@ click(280, 209)
 assert(has_label("Save this score?"))
 click(280, 131) -- Explicitly decline and continue to menu.
 assert(has_label("HIGH SCORES") and #saved.high_scores == 1)
-click(180, 110)
+click(80, 100)
 assert(has_label("BOARD COMPLETE!") and not has_label("NEW HIGH SCORE!"))
 -- Existing save shape also permits a blank name and fallback to PLAYER.
 saved.high_score_handled = false
 boot()
-click(180, 110)
+click(80, 100)
 assert(has_label("BOARD COMPLETE!"))
 click(300, 182)
 assert(has_label("NEW HIGH SCORE!"))
@@ -411,7 +425,7 @@ assert(found_player)
 saved.high_score_handled = false
 saved.results_previous_best = saved.session.score + 7
 boot()
-click(180, 110)
+click(80, 100)
 assert(has_label("7 short of Table best"))
 click(390, 210) -- Play again while pending.
 assert(has_label("Save this score?"))
@@ -427,14 +441,14 @@ assert(has_label("SCORE DETAILS") and has_label("Back to summary"))
 click(290, 246)
 assert(has_label("BOARD COMPLETE!") and has_label("Play again"))
 boot()
-click(180, 110)
+click(80, 100)
 assert(has_label("7 short of Table best"))
 click(290, 182)
 assert(has_label("PICK YOUR JOKER"))
 -- Legacy completed saves must not invent a previous record.
 saved.results_previous_best, saved.results_record_known = nil, nil
 boot()
-click(180, 110)
+click(80, 100)
 assert(not has_label("7 short of Table best") and not has_label("First recorded board"))
 -- A deterministic final turn exercises real completion without relying on random scores.
 local Session = require("game.session")
@@ -447,7 +461,7 @@ saved = {session = final_turn, theme = "classic", color_progression_version = 2,
   owned_colors = {classic = true}, reduced_motion = true}
 boot()
 assert(not State.owned_colors.midnight, "An unfinished board cannot unlock colors")
-click(180, 110)
+click(80, 100)
 click(365, 120)
 for die = 1, 5 do
   click(250 + (die - 1) * 44, 70)
@@ -458,7 +472,7 @@ assert(State.session:view().phase == "resolving" and saved.session.score == 600)
 assert(saved.owned_colors.midnight and saved.owned_colors.plum and saved.owned_colors.golden)
 assert(#saved.pending_colors == 9 and saved.theme == "classic")
 boot() -- Restart before the final payouts finish.
-click(180, 110)
+click(80, 100)
 assert(has_label("New colors: 9"))
 tick(5)
 assert(has_label("New colors: 9"), "Notices remain visible while viewing the summary")
@@ -472,7 +486,7 @@ click(280, 246)
 -- Restore pending notices to separately exercise Back and Skip navigation.
 saved.pending_colors = {"midnight", "plum", "golden", "forest", "cyberpunk", "candyland", "ocean", "paper", "dark"}
 boot()
-click(180, 110)
+click(80, 100)
 click(280, 209)
 click(290, 165) -- Back from pending-score prompt does not acknowledge notices.
 assert(has_label("New colors: 9"))
@@ -481,17 +495,17 @@ click(280, 131) -- Explicitly skip recording.
 assert(saved.high_score_handled and #saved.high_scores == 0)
 assert(saved.owned_colors.golden and #saved.pending_colors == 0)
 boot()
-click(180, 110)
+click(80, 100)
 assert(not has_label("New colors: 9") and State.owned_colors.golden)
 click(280, 209)
-click(330, 80)
+click(220, 100)
 click(40, 190)
 assert(State.theme == "golden" and saved.theme == "golden")
 -- Name entry and score details both acknowledge notices without changing ownership.
 for _, destination in ipairs({"name", "details"}) do
   saved.pending_colors, saved.high_score_handled = {"midnight"}, false
   boot()
-  click(180, 110)
+  click(80, 100)
   assert(has_label("New colors: 1"))
   click(280, destination == "name" and 182 or 237)
   assert(#saved.pending_colors == 0 and saved.owned_colors.golden)
@@ -506,7 +520,7 @@ for _, destination in ipairs({"name", "details"}) do
 end
 -- Migration preserves an existing selection without gifting every color.
 boot()
-click(330, 80)
+click(220, 100)
 click(420, 50)
 assert(has_label("  Forest") and has_label("  Ocean") and has_label("2 / 3"))
 for index, id in ipairs({"forest", "cyberpunk", "candyland", "ocean"}) do
@@ -536,7 +550,7 @@ assert(State.theme == "classic")
 -- Exercise every drafted joker through the real application callbacks.
 -- Live reload retains State from the version before draft seeds existed.
 State.draft_seed = nil
-click(180, 80)
+click(240, 60)
 assert(State.screen == "jokers" and #State.joker_choices == 3)
 State.draft_seed, State.joker_choices = nil, nil
 draw() -- Reload while already viewing the old joker selection screen.
@@ -556,7 +570,7 @@ for joker_index, joker in ipairs(Jokers) do
   end
   assert(chosen_seed, "Every joker must be offered through the new-board flow")
   State.draft_seed = chosen_seed
-  click(180, 80)
+  click(240, 60)
   local offered = table.concat(State.joker_choices, ",")
   assert(#State.joker_choices == 3)
   local visible = 0
@@ -581,7 +595,7 @@ for joker_index, joker in ipairs(Jokers) do
   else click(230, 80 + (slot - 1) * 53) end
   assert(State.session:view().joker == joker.id and saved.session.joker == joker.id)
   boot()
-  click(180, 110)
+  click(80, 100)
   assert(State.session:view().joker == joker.id, "Continue must preserve the selected joker")
   complete_board(false)
   local result = Summary.calculate(State.session:view())
@@ -591,7 +605,7 @@ for joker_index, joker in ipairs(Jokers) do
   assert(points == saved.session.score, "Ledger payouts must account for the whole board")
   local score = saved.session.score
   boot()
-  click(180, 110)
+  click(80, 100)
   assert(State.session:view().score == score and State.session:view().joker == joker.id)
   assert(has_label(joker.name .. ": +" .. result.contribution))
   click(390, 209) -- Play again opens pending-record prompt.
@@ -602,21 +616,21 @@ end
 saved = {session = Session.new("pair_pay", 17):snapshot(), color_progression_version = 2,
   owned_colors = {classic = true}}
 boot()
-click(180, 110)
+click(80, 100)
 click(250, 70)
 click(250, 120)
 local old_session, old_live, old_saved = State.session, State.session:view(), copy(saved)
 click(50, 24)
-click(180, 80)
+click(240, 60)
 key(input.LEFT)
 assert(State.focus == 10)
 key(input.BTN1)
 assert(State.screen == "jokers" and same(saved, old_saved))
 click(50, 200) -- Leave joker selection without replacing anything.
-click(180, 110)
+click(80, 100)
 assert(State.session == old_session and same(State.session:view(), old_live))
 click(50, 24)
-click(180, 80)
+click(240, 60)
 click(160, 170)
 click(230, 80)
 assert(State.screen == "game" and State.session ~= old_session)

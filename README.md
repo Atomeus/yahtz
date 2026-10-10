@@ -185,7 +185,7 @@ It loops continuously across screens at 16% track volume, gently ducking to 8%
 during gameplay score payouts. The pause menu music slider adjusts or mutes it
 independently of sound effects.
 
-Choose **Credits** at the bottom right of the main menu for the music attribution,
+Choose **Credits** at the bottom center of the main menu for the music attribution,
 CC0 license, and engine credit. Select **Main menu** or use the back action to return.
 
 Menu and labeled control activation plays a short generated click, including
