@@ -20,6 +20,14 @@ Completed boards that qualify for the top five offer optional name entry using a
 
 ## Code organization
 
+Completed boards first show a results summary beside the board: total points,
+the comparison with the previous Table best, the strongest line (outlined on the
+board), and points added by the joker. Score details opens the full scoring ledger.
+Qualifying scores offer Save score; saving returns to the summary. Play again
+opens joker selection. Leaving a pending score offers Save score, Skip and continue,
+or Back. Previous-record comparisons survive saving and restarting; uncertain
+legacy comparisons and unavailable legacy joker contributions are omitted.
+
 The engine entry point coordinates initialization, persistence, and screen transitions.
 Screen behavior and rendering live together in screens/main_menu.lua,
 screens/name_entry.lua, screens/joker_selection.lua, and screens/game.lua.
@@ -35,17 +43,34 @@ require a check in Usagi.
 
 ## Color themes
 
+Prestige colors continue beyond Golden Hour: Forest at 450, Cyberpunk at 475,
+Candyland at 500, Ocean at 525, Paper at 550, and Dark at 575 points on one
+completed board. Paper uses light surfaces and dark ink; the other prestige
+palettes use dark surfaces. Colors has Prev/Next pages, available with mouse or
+remappable controls. A New colors button on results lists every newly earned
+theme. Existing recorded scores count toward the added milestones on upgrade.
+The highest tiers are deliberately rare: Short Run tops out at 500, Thrifty at
+550, and Pair Pay at 600.
+
 Choose **Colors** from the main menu to select Classic Table, Midnight,
-Plum Velvet, or Golden Hour. All four are available immediately. The preview
+Plum Velvet, or Golden Hour. Classic Table is available immediately; one completed
+board unlocks Midnight at 200 points, Plum Velvet at 300, and Golden Hour at 400.
+Requirements include joker points and do not depend on saving a leaderboard name.
+Locked colors show their required score. The preview
 shows the selected table, dice, and score colors; selection saves automatically.
 The choice applies across menus, gameplay, name entry, and score animation.
 Older or unknown saved theme IDs fall back to Classic.
 
-Themes use only the engine's default palette, with dark surfaces, readable
+Themes use only the engine's default palette, with readable
 text, dark pips on light dice, and visible focus outlines. Contrast tests
 verify text and pip pairs at 4.5:1 or higher and control borders/focus at
-3:1 or higher against the default palette. Future score-based unlocks are
-tracked separately; this proof of concept has no locked themes.
+3:1 or higher against the default palette.
+
+Unlocks save permanently with the completed board, before final payouts finish.
+Results list newly unlocked colors without changing your selected theme. Leaving
+the summary acknowledges the notice; reopening results does not repeat it.
+Older saves credit recorded scores and saved completed boards, and preserve an
+existing selected color. Unfinished boards do not grant milestones.
 
 During a board, use **Colors** in the header, then **Back to game**.
 Changing colors preserves held dice, rerolls, unconfirmed placements,

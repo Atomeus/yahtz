@@ -27,12 +27,50 @@ Themes.options = {
     frame = gfx.COLOR_ORANGE, accent = gfx.COLOR_YELLOW,
     secondary = gfx.COLOR_PEACH, die = gfx.COLOR_YELLOW,
   },
+  {
+    id = "forest", name = "Forest", description = "Black felt, green trim, leafy accents",
+    table = gfx.COLOR_BLACK, panel = gfx.COLOR_DARK_BLUE,
+    frame = gfx.COLOR_DARK_GREEN, accent = gfx.COLOR_GREEN,
+    secondary = gfx.COLOR_WHITE, die = gfx.COLOR_GREEN,
+  },
+  {
+    id = "cyberpunk", name = "Cyberpunk", description = "Midnight felt, neon pink and green",
+    table = gfx.COLOR_DARK_BLUE, panel = gfx.COLOR_BLACK,
+    frame = gfx.COLOR_PINK, accent = gfx.COLOR_GREEN,
+    secondary = gfx.COLOR_PINK, die = gfx.COLOR_YELLOW,
+  },
+  {
+    id = "candyland", name = "Candyland", description = "Purple felt, pink dice, cream accents",
+    table = gfx.COLOR_DARK_PURPLE, panel = gfx.COLOR_DARK_BLUE,
+    frame = gfx.COLOR_PEACH, accent = gfx.COLOR_PEACH,
+    secondary = gfx.COLOR_WHITE, die = gfx.COLOR_PINK,
+  },
+  {
+    id = "ocean", name = "Ocean", description = "Deep blue felt, pale dice, white foam",
+    table = gfx.COLOR_DARK_BLUE, panel = gfx.COLOR_BLACK,
+    frame = gfx.COLOR_BLUE, accent = gfx.COLOR_WHITE,
+    secondary = gfx.COLOR_LIGHT_GRAY, die = gfx.COLOR_WHITE,
+  },
+  {
+    id = "paper", name = "Paper", description = "Cream paper, white panels, dark ink",
+    table = gfx.COLOR_PEACH, panel = gfx.COLOR_WHITE,
+    frame = gfx.COLOR_LIGHT_GRAY, accent = gfx.COLOR_DARK_BLUE,
+    text = gfx.COLOR_BLACK, secondary = gfx.COLOR_DARK_PURPLE,
+    muted = gfx.COLOR_DARK_BLUE, border = gfx.COLOR_DARK_BLUE,
+    die = gfx.COLOR_WHITE,
+  },
+  {
+    id = "dark", name = "Dark", description = "Black felt, charcoal trim, silver dice",
+    table = gfx.COLOR_BLACK, panel = gfx.COLOR_BLACK,
+    frame = gfx.COLOR_DARK_GRAY, accent = gfx.COLOR_WHITE,
+    secondary = gfx.COLOR_LIGHT_GRAY, die = gfx.COLOR_LIGHT_GRAY,
+  },
 }
 
 for _, theme in ipairs(Themes.options) do
-  theme.text = gfx.COLOR_WHITE
-  theme.muted = gfx.COLOR_LIGHT_GRAY
-  theme.border = gfx.COLOR_LIGHT_GRAY
+  theme.text = theme.text or gfx.COLOR_WHITE
+  theme.muted = theme.muted or gfx.COLOR_LIGHT_GRAY
+  theme.border = theme.border or gfx.COLOR_LIGHT_GRAY
   theme.disabled = theme.panel
   theme.pip = gfx.COLOR_BLACK
   theme.die_fixed = gfx.COLOR_LIGHT_GRAY

@@ -9,26 +9,45 @@ local Credits = require("screens.credits")
 local NameEntry = require("screens.name_entry")
 local JokerSelection = require("screens.joker_selection")
 local GameScreen = require("screens.game")
+local Results = require("screens.results")
+local ColorUnlocks = require("game.color_unlocks")
 
 function _config()
   return { name = "Yahtz - The little dice table", game_id = "com.ethan.yahtz", game_width = 480, game_height = 270, pixel_perfect = true }
 end
 
 local function save()
-  usagi.save({ theme = State.theme, session = State.session and State.session:snapshot(), reduced_motion = State.reduced_motion, ledger = State.ledger, high_scores = State.high_scores or {}, high_score_handled = State.high_score_handled or false })
+  local boundary = State.session and State.session:snapshot()
+  if boundary and boundary.phase == "results" then
+    local owned, earned = ColorUnlocks.award(State.owned_colors, boundary.score)
+    State.owned_colors = owned
+    for _, id in ipairs(earned) do State.pending_colors[#State.pending_colors + 1] = id end
+  end
+  if boundary and boundary.phase == "results" and State.results_previous_best == nil
+    and State.results_record_known then
+    State.results_previous_best = State.high_scores[1] and State.high_scores[1].score or false
+  end
+  usagi.save({ theme = State.theme, session = boundary, reduced_motion = State.reduced_motion, ledger = State.ledger, high_scores = State.high_scores or {}, high_score_handled = State.high_score_handled or false, results_previous_best = State.results_previous_best, results_record_known = State.results_record_known, color_progression_version = ColorUnlocks.VERSION, owned_colors = State.owned_colors, pending_colors = State.pending_colors })
 end
 
 function _init()
   Music.start()
   local saved = usagi.load() or {}
   State = { theme = Themes.get(saved.theme).id, screen = "menu", focus = 1, time = 0, reduced_motion = saved.reduced_motion or false, selected = 1, buttons = {}, events = {}, event_index = 1, event_timer = 0, ledger_offset = 1, ledger = saved.ledger or {}, high_scores = saved.high_scores or {}, high_score_handled = saved.high_score_handled or false }
+  State.results_previous_best, State.results_record_known = saved.results_previous_best, saved.results_record_known
+  State.owned_colors, State.theme, State.pending_colors = ColorUnlocks.restore(saved)
   if saved.session then
     local ok, session = pcall(function() return Session.resume(saved.session) end)
     if ok and session then State.session = session end
   end
+  if (saved.color_progression_version or 0) < ColorUnlocks.VERSION then save() end
 end
 
 local function navigate(screen, focus)
+  if State.screen == "results" and screen ~= "results" then
+    State.pending_colors = {}
+    save()
+  end
   if screen == "themes" then
     State.theme_return = { screen = State.screen, focus = State.focus }
   end
@@ -45,19 +64,20 @@ local function start(joker)
   State.session = Session.new(joker, math.floor(usagi.elapsed * 1000000) + os.time())
   State.screen, State.focus, State.selected = "game", 26, 1
   State.events, State.ledger = {}, {}
+  State.pending_colors = {}
   State.high_score_handled = false
+  State.results_previous_best, State.results_record_known = nil, true
   save()
 end
 
 local function offer_high_score()
-  if State.session:view().phase ~= "results" or State.high_score_handled then return false end
-  if HighScores.qualifies(State.high_scores or {}, State.session:view().score) then
-    State.screen, State.entry_name, State.focus = "name_entry", "", 100
-    return true
-  end
-  State.high_score_handled = true
-  save()
-  return false
+  if State.session:view().phase ~= "results" then return false end
+  Results.open(State, navigate)
+  return true
+end
+
+local function enter_name()
+  if Results.pending(State) then State.entry_name = ""; navigate("name_entry", 100) end
 end
 
 local function toggle_motion()
@@ -66,6 +86,7 @@ local function toggle_motion()
 end
 
 local function select_theme(id)
+  if not State.owned_colors[id] then return end
   State.theme = Themes.get(id).id
   save()
 end
@@ -92,6 +113,7 @@ function _draw()
   elseif State.screen == "credits" then Credits.draw(State, navigate)
   elseif State.screen == "themes" then ThemeSelection.draw(State, return_from_themes, select_theme)
   elseif State.screen == "name_entry" then NameEntry.draw(State, navigate, save)
+  elseif State.screen == "results" then Results.draw(State, navigate, save, enter_name)
   elseif State.screen == "jokers" then JokerSelection.draw(State, navigate, start)
   else GameScreen.draw(State, navigate, save, offer_high_score) end
 end

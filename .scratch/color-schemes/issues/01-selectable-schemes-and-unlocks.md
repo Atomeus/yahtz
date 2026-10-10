@@ -1,6 +1,6 @@
 ï»¿# Selectable color schemes and score-based unlocks
 
-Status: needs-triage
+Status: resolved
 Type: task
 Priority: future
 
@@ -36,8 +36,7 @@ Let players personalize the table with cosmetic color schemes, with additional s
 
 ## Open decisions
 
-- Final milestone thresholds after reviewing representative completed-board scores.
-- Final palette colors and how many schemes ship in the first version.
+- Resolved in [the score-based color unlocks PRD](../spec.md): Classic Table is immediate; Midnight unlocks at 200, Plum Velvet at 300, and Golden Hour at 400 completed-board points. Retain the four existing palettes.
 
 ## Out of scope
 
@@ -51,3 +50,19 @@ Gameplay bonuses, online accounts, paid cosmetics, and changes to scoring rules.
   shared semantic color roles, live preview, saved selection, and safe fallback.
   Contrast checks and lifecycle coverage added. Score thresholds, permanent
   unlocks, and unlock notifications remain future work; this ticket stays open.
+
+- Published [the implementation-ready PRD](../spec.md) from the scoring discussion.
+  It defines inclusive milestones, permanent ownership, migration, results notices,
+  and both lifecycle and dedicated unlock-rule tests. This request authorizes the
+  specification only; gameplay implementation remains a separate task.
+
+## Answer
+
+Implemented on `feature/color-unlocks` after the user authorized implementation.
+Completed boards permanently unlock Midnight at 200, Plum Velvet at 300, and Golden
+Hour at 400. Ownership and pending results notices save at the final turn boundary;
+Colors enforces ownership, and migration credits legacy scores and preserves the
+previous selection. Dedicated unlock-rule and application lifecycle tests cover
+boundaries, restart during payouts, skipped recording, notices, and migration.
+All nine suites pass with `usagi run test.lua`. Physical gamepad and visual inspection
+remain manual verification items.

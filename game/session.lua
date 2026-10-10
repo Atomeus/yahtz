@@ -20,7 +20,7 @@ end
 function Session.new(joker, seed)
   assert(joker == "pair_pay" or joker == "short_run" or joker == "thrifty", "unknown joker")
   local state = {joker = joker, rng = ((math.floor(seed or 1) - 1) % 2147483646) + 1,
-    board = {}, scored_lines = {}, score = 0, turn = 1, adjustments = 2}
+    board = {}, scored_lines = {}, score = 0, turn = 1, adjustments = 2, turn_bonus_total = 0}
   for i = 1, 25 do state.board[i] = 0 end
   initial_roll(state)
   return Session.resume(state)
@@ -144,6 +144,7 @@ function Session:confirm()
   for i = 1, 5 do s.board[s.placements[i]] = s.dice[i] end
   for _, line in ipairs(preview.lines) do s.scored_lines[line.id] = true end
   s.score = preview.total
+  if s.turn_bonus_total ~= nil then s.turn_bonus_total = s.turn_bonus_total + preview.turn_bonus end
   local boundary = copy(s)
   if s.turn == 5 then
     boundary.phase = "results"

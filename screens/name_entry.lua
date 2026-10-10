@@ -34,14 +34,12 @@ function NameEntry.draw(state, navigate, save)
     if state.high_score_handled then return end
     state.high_scores = HighScores.record(state.high_scores or {}, state.entry_name, state.session:view().score)
     state.high_score_handled = true
-    navigate("menu", 1)
+    navigate("results", 1)
     save()
     sound("score")
   end)
-  button(139, 298, 221, 110, 22, "Skip", function()
-    state.high_score_handled = true
-    navigate("game", 33)
-    save()
+  button(139, 298, 221, 110, 22, "Back", function()
+    navigate("results", 1)
   end)
   text(HighScores.NAME_LIMIT .. " characters / blank name saves as PLAYER", 78, 245, colors.secondary)
 end

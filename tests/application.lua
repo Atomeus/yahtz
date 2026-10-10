@@ -7,9 +7,13 @@ local function copy(value)
 end
 local saved, pressed, mouse_click, mx, my
 local labels, rectangles, score_labels = {}, {}, {}
+local text_positions = {}
 local function noop() end
 gfx = setmetatable({
-  text = function(value) labels[#labels + 1] = value end,
+  text = function(value, x, y)
+    labels[#labels + 1] = value
+    text_positions[#text_positions + 1] = {value = value, x = x, y = y}
+  end,
   text_ex = function(value) score_labels[#score_labels + 1] = value end,
   rect = function(x, y, w, h, color) rectangles[#rectangles + 1] = {x, y, w, h, color} end,
   rect_fill = noop, clear = noop,
@@ -31,11 +35,12 @@ usagi = {
   elapsed = 1,
   save = function(value) saved = copy(value) end,
   load = function() return copy(saved) end,
-  measure_text = function(value) return #value * 6, 7 end,
+  measure_text = function(value) return #value * 6, 16 end,
 }
 require("main")
 local function draw()
   labels, rectangles, score_labels = {}, {}, {}
+  text_positions = {}
   _draw()
 end
 local function tick(dt)
@@ -137,6 +142,8 @@ local function complete_board()
     end
   end
   assert(State.session:view().phase == "results")
+  assert(has_label("BOARD COMPLETE!") and has_label("Save score"))
+  click(300, 182)
   assert(has_label("NEW HIGH SCORE!"))
 end
 boot()
@@ -144,6 +151,32 @@ assert(has_label("HIGH SCORES"))
 assert(State.theme == "classic", "Old saves must default to Classic")
 click(330, 80)
 assert(has_label("CHOOSE YOUR COLORS"))
+assert(has_label("Reach 200 points") and has_label("Reach 300 points") and has_label("Reach 400 points"))
+for _, item in ipairs(text_positions) do
+  if item.value == "Available" or item.value:match("^Reach %d+ points$") then
+    local width, height = usagi.measure_text(item.value)
+    local contained = false
+    for _, control in ipairs(State.buttons) do
+      if control.id <= 4 and item.x >= control.x and item.y >= control.y
+        and item.x + width <= control.x + control.w and item.y + height <= control.y + control.h then
+        contained = true
+      end
+    end
+    assert(contained, item.value .. " must fit inside its theme box at the engine's 16px line height")
+  end
+end
+click(40, 114)
+assert(State.theme == "classic" and saved.theme == "classic")
+key(input.DOWN)
+key(input.BTN1)
+assert(State.theme == "classic", "Directional navigation must skip locked colors")
+-- Credit a legacy record, then keep the remaining lifecycle fixtures independent of ranking.
+saved = {high_scores = {{name = "LEGACY", score = 400}}}
+boot()
+assert(saved.owned_colors.golden and #saved.pending_colors == 0)
+saved.high_scores = {}
+boot()
+click(330, 80)
 -- Directional actions reach and activate themes without a mouse.
 key(input.DOWN)
 key(input.BTN1)
@@ -214,6 +247,7 @@ click(40, 152)
 click(40, 250)
 play()
 complete_board()
+assert(saved.results_previous_best == false)
 key(input.RIGHT)
 key(input.BTN1)
 assert(State.entry_name == "B", "Directional focus must activate the selected letter")
@@ -224,12 +258,14 @@ assert(#State.entry_name == 11)
 click(75, 200)
 assert(#State.entry_name == 12)
 click(80, 230)
-assert(has_label("HIGH SCORES") and #saved.high_scores == 1)
+assert(has_label("BOARD COMPLETE!") and #saved.high_scores == 1)
+assert(has_label("First recorded board") and saved.results_previous_best == false)
 local score = saved.high_scores[1].score
 boot()
 assert(has_label(saved.high_scores[1].name))
 click(180, 110)
 assert(has_label("BOARD COMPLETE!") and not has_label("NEW HIGH SCORE!"))
+assert(has_label("First recorded board"))
 assert(#saved.high_scores == 1 and saved.high_scores[1].score == score)
 boot()
 click(330, 80)
@@ -237,15 +273,19 @@ click(40, 190)
 click(40, 250)
 play()
 complete_board()
-click(310, 230) -- Skip qualifying name entry.
-assert(has_label("BOARD COMPLETE!") and #saved.high_scores == 1)
-click(250, 245)
+click(310, 230) -- Return from name entry without declining.
+click(280, 209)
+assert(has_label("Save this score?"))
+click(280, 131) -- Explicitly decline and continue to menu.
+assert(has_label("HIGH SCORES") and #saved.high_scores == 1)
 click(180, 110)
 assert(has_label("BOARD COMPLETE!") and not has_label("NEW HIGH SCORE!"))
 -- Existing save shape also permits a blank name and fallback to PLAYER.
 saved.high_score_handled = false
 boot()
 click(180, 110)
+assert(has_label("BOARD COMPLETE!"))
+click(300, 182)
 assert(has_label("NEW HIGH SCORE!"))
 click(80, 230)
 assert(#saved.high_scores == 2)
@@ -254,4 +294,130 @@ for _, entry in ipairs(saved.high_scores) do
   if entry.name == "PLAYER" then found_player = true end
 end
 assert(found_player)
+-- Pending-score prompts keep the original comparison and require explicit decline.
+saved.high_score_handled = false
+saved.results_previous_best = saved.session.score + 7
+boot()
+click(180, 110)
+assert(has_label("7 short of Table best"))
+click(390, 210) -- Play again while pending.
+assert(has_label("Save this score?"))
+click(290, 165) -- Back keeps the score pending.
+assert(has_label("Save score") and not saved.high_score_handled)
+click(290, 209) -- Main menu while pending.
+click(290, 97) -- Save from the prompt returns to summary.
+assert(has_label("NEW HIGH SCORE!"))
+click(80, 230)
+assert(has_label("BOARD COMPLETE!") and has_label("7 short of Table best"))
+click(390, 210) -- Inspect full ledger.
+assert(has_label("SCORE DETAILS") and has_label("Back to summary"))
+click(290, 246)
+assert(has_label("BOARD COMPLETE!") and has_label("Play again"))
+boot()
+click(180, 110)
+assert(has_label("7 short of Table best"))
+click(290, 182)
+assert(has_label("PICK YOUR JOKER"))
+-- Legacy completed saves must not invent a previous record.
+saved.results_previous_best, saved.results_record_known = nil, nil
+boot()
+click(180, 110)
+assert(not has_label("7 short of Table best") and not has_label("First recorded board"))
+-- A deterministic final turn exercises real completion without relying on random scores.
+local Session = require("game.session")
+local final_turn = Session.new("pair_pay", 1):snapshot()
+final_turn.turn, final_turn.score = 5, 240
+for cell = 1, 20 do final_turn.board[cell] = 1 end
+for row = 1, 4 do final_turn.scored_lines["row" .. row] = true end
+for die = 1, 5 do final_turn.dice[die] = 1 end
+saved = {session = final_turn, theme = "classic", color_progression_version = 2,
+  owned_colors = {classic = true}, reduced_motion = true}
+boot()
+assert(not State.owned_colors.midnight, "An unfinished board cannot unlock colors")
+click(180, 110)
+click(365, 120)
+for die = 1, 5 do
+  click(250 + (die - 1) * 44, 70)
+  click(50 + (die - 1) * 36, 204)
+end
+click(360, 230)
+assert(State.session:view().phase == "resolving" and saved.session.score == 600)
+assert(saved.owned_colors.midnight and saved.owned_colors.plum and saved.owned_colors.golden)
+assert(#saved.pending_colors == 9 and saved.theme == "classic")
+boot() -- Restart before the final payouts finish.
+click(180, 110)
+assert(has_label("New colors: 9"))
+tick(5)
+assert(has_label("New colors: 9"), "Notices remain visible while viewing the summary")
+click(100, 247)
+assert(has_label("NEW COLORS UNLOCKED"))
+for _, name in ipairs({"Midnight", "Plum Velvet", "Golden Hour", "Forest", "Cyberpunk", "Candyland", "Ocean", "Paper", "Dark"}) do
+  assert(has_label(name), "Every unlocked theme must appear in the notice")
+end
+assert(#saved.pending_colors == 0)
+click(280, 246)
+-- Restore pending notices to separately exercise Back and Skip navigation.
+saved.pending_colors = {"midnight", "plum", "golden", "forest", "cyberpunk", "candyland", "ocean", "paper", "dark"}
+boot()
+click(180, 110)
+click(280, 209)
+click(290, 165) -- Back from pending-score prompt does not acknowledge notices.
+assert(has_label("New colors: 9"))
+click(280, 209)
+click(280, 131) -- Explicitly skip recording.
+assert(saved.high_score_handled and #saved.high_scores == 0)
+assert(saved.owned_colors.golden and #saved.pending_colors == 0)
+boot()
+click(180, 110)
+assert(not has_label("New colors: 9") and State.owned_colors.golden)
+click(280, 209)
+click(330, 80)
+click(40, 190)
+assert(State.theme == "golden" and saved.theme == "golden")
+-- Name entry and score details both acknowledge notices without changing ownership.
+for _, destination in ipairs({"name", "details"}) do
+  saved.pending_colors, saved.high_score_handled = {"midnight"}, false
+  boot()
+  click(180, 110)
+  assert(has_label("New colors: 1"))
+  click(280, destination == "name" and 182 or 237)
+  assert(#saved.pending_colors == 0 and saved.owned_colors.golden)
+  if destination == "name" then
+    click(80, 230)
+    assert(has_label("BOARD COMPLETE!") and #saved.high_scores == 1)
+  else
+    assert(has_label("SCORE DETAILS"))
+    click(280, 246)
+  end
+  assert(not has_label("New colors: 1"))
+end
+-- Migration preserves an existing selection without gifting every color.
+boot()
+click(330, 80)
+click(420, 50)
+assert(has_label("  Forest") and has_label("  Ocean") and has_label("2 / 3"))
+for index, id in ipairs({"forest", "cyberpunk", "candyland", "ocean"}) do
+  click(40, 76 + (index - 1) * 38)
+  assert(State.theme == id and saved.theme == id)
+end
+-- Page navigation also works through the remappable select action.
+State.focus = 101
+key(input.BTN1)
+assert(has_label("  Paper") and has_label("  Dark") and has_label("3 / 3"))
+click(40, 76)
+assert(saved.theme == "paper")
+click(40, 114)
+assert(saved.theme == "dark")
+click(280, 50)
+assert(has_label("2 / 3"))
+boot()
+assert(State.theme == "dark", "Prestige theme choice must survive restart")
+saved = {theme = "plum"}
+boot()
+assert(saved.theme == "plum" and saved.owned_colors.plum and not saved.owned_colors.midnight)
+boot()
+assert(State.theme == "plum" and not State.owned_colors.midnight)
+saved.theme = "golden" -- An unowned selection in the current schema falls back.
+boot()
+assert(State.theme == "classic")
 print("lifecycle navigation, controls, full boards, resume, preferences and name entry passed")
