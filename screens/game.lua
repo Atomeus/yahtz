@@ -3,6 +3,7 @@ local Controls = require("ui.controls")
 local text, sound = Drawing.text, Drawing.sound
 local JOKERS = require("game.jokers")
 local draw_die = Drawing.die
+local ScoreDisplay = require("ui.score_display")
 local BOARD_X, BOARD_Y, CELL = 42, 53, 36
 local GameScreen = {}
 
@@ -72,16 +73,7 @@ function GameScreen.draw(state, navigate, save, offer_high_score, toggle_motion)
   local locked = view.phase == "resolving" or view.phase == "results"
   text("YAHTZ", 24, 20, gfx.COLOR_YELLOW)
   text("TURN " .. math.min(view.turn, 5) .. " / 5", 102, 20, gfx.COLOR_PEACH)
-  local shown_score = view.score
-  if view.phase == "resolving" then
-    -- The saved score is already committed; only its presentation counts up.
-    for i = state.event_index, #state.events do shown_score = shown_score - state.events[i].points end
-    local event = state.events[state.event_index]
-    if event and not state.reduced_motion then
-      shown_score = shown_score + math.floor(event.points * math.min(1, state.event_timer / 0.65))
-    end
-  end
-  text(tostring(shown_score) .. " POINTS", 242, 20, gfx.COLOR_YELLOW)
+  ScoreDisplay.draw(state, view)
   text(joker_name(view.joker), 354, 20, gfx.COLOR_PEACH)
   local active_event = view.phase == "resolving" and state.events[state.event_index]
   for line = 1, 5 do
