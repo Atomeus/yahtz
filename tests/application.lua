@@ -62,6 +62,45 @@ local function play()
   click(230, 80)
   assert(State.session:view().phase == "rolling")
 end
+local function same(a, b)
+  if type(a) ~= type(b) then return false end
+  if type(a) ~= "table" then return a == b end
+  for k, v in pairs(a) do if not same(v, b[k]) then return false end end
+  for k in pairs(b) do if a[k] == nil then return false end end
+  return true
+end
+
+local function change_theme_in_game()
+  local before = State.session:view()
+  local boundary = State.session:snapshot()
+  local event_timer, selected = State.event_timer, State.selected
+  click(200, 24)
+  assert(has_label("CHOOSE YOUR COLORS") and has_label("Back to game"))
+  tick(2) -- Scoring must pause while choosing colors.
+  assert(State.event_timer == event_timer)
+  click(40, 114)
+  assert(State.theme == "midnight" and saved.theme == "midnight")
+  click(40, 250)
+  assert(State.screen == "game" and State.focus == 40)
+  assert(same(State.session:view(), before), "Changing colors must preserve the live turn")
+  assert(same(State.session:snapshot(), boundary), "Changing colors must preserve the save boundary")
+  assert(State.selected == selected and State.event_timer == event_timer)
+end
+
+local function inspect_joker()
+  local before, timer = State.session:view(), State.event_timer
+  click(380, 28)
+  assert(has_label("Each distinct repeated face adds +10 per line."))
+  assert(has_label("Example: 2,2,5,5,5 adds +20 bonus points."))
+  tick(2)
+  assert(same(State.session:view(), before) and State.event_timer == timer)
+  -- The dialog has no underlying gameplay targets.
+  click(250, 120)
+  assert(same(State.session:view(), before))
+  key(input.BTN1)
+  assert(State.screen == "game" and not State.joker_info and State.focus == 41)
+end
+
 local function complete_board()
   for turn = 1, 5 do
     click(365, 120) -- End rolling early.
@@ -76,6 +115,8 @@ local function complete_board()
     assert(State.session:view().phase == "resolving")
     assert(saved.session.phase == (turn == 5 and "results" or "rolling"))
     if turn == 1 then
+      inspect_joker()
+      change_theme_in_game()
       for _ = 1, 20 do
         if State.session:view().phase ~= "resolving" then break end
         tick(2)
@@ -89,15 +130,39 @@ local function complete_board()
 end
 boot()
 assert(has_label("HIGH SCORES"))
+assert(State.theme == "classic", "Old saves must default to Classic")
+click(330, 80)
+assert(has_label("CHOOSE YOUR COLORS"))
+-- Directional actions reach and activate themes without a mouse.
+key(input.DOWN)
+key(input.BTN1)
+assert(saved.theme == "midnight")
+for index, id in ipairs({"classic", "midnight", "plum", "golden"}) do
+  click(40, 76 + (index - 1) * 38)
+  assert(State.theme == id and saved.theme == id)
+  assert(has_label("* " .. require("ui.themes").get(id).name))
+end
+click(40, 250)
+assert(has_label("HIGH SCORES"))
+boot()
+assert(State.theme == "golden", "Theme must persist after reload")
+saved.theme = "removed-theme"
+boot()
+assert(State.theme == "classic", "Unknown saved themes must fall back safely")
+click(330, 110) -- Motion now belongs to the main menu.
+assert(saved.reduced_motion and has_label("Motion: reduced"))
+boot()
+assert(State.reduced_motion)
 key(input.BTN1) -- Default main-menu focus.
 assert(has_label("PICK YOUR JOKER"))
-click(230, 250)
-assert(saved.reduced_motion)
+assert(not has_label("Motion: reduced"))
 click(230, 80)
 local original = table.concat(saved.session.dice, ",")
 click(250, 70) -- Hold first die.
 assert(State.session:view().held[1])
 click(250, 120) -- Reroll.
+inspect_joker()
+change_theme_in_game()
 boot()
 click(180, 110) -- Continue discards unconfirmed actions on reload.
 assert(table.concat(State.session:view().dice, ",") == original)
@@ -105,10 +170,17 @@ assert(not State.session:view().held[1] and State.reduced_motion)
 click(365, 120)
 click(300, 158) -- Adjustment.
 assert(State.session:view().adjustments == 1)
+click(50, 60) -- Preserve an unconfirmed placement and its undo history too.
+change_theme_in_game()
+key(input.BTN2)
+assert(State.session:view().placements[1] == 0)
 key(input.BTN2)
 assert(State.session:view().adjustments == 2)
 -- Start a fresh board through the menu after reload.
 boot()
+click(330, 80)
+click(40, 152)
+click(40, 250)
 play()
 complete_board()
 key(input.RIGHT)
@@ -129,6 +201,9 @@ click(180, 110)
 assert(has_label("BOARD COMPLETE!") and not has_label("NEW HIGH SCORE!"))
 assert(#saved.high_scores == 1 and saved.high_scores[1].score == score)
 boot()
+click(330, 80)
+click(40, 190)
+click(40, 250)
 play()
 complete_board()
 click(310, 230) -- Skip qualifying name entry.

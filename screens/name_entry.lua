@@ -1,3 +1,4 @@
+local Themes = require("ui.themes")
 local Drawing = require("ui.drawing")
 local Controls = require("ui.controls")
 local text, sound = Drawing.text, Drawing.sound
@@ -9,11 +10,12 @@ local function append(state, value)
 end
 
 function NameEntry.draw(state, navigate, save)
+  local colors = Themes.colors()
   local function button(...) return Controls.button(state, ...) end
-  text("NEW HIGH SCORE!", 150, 26, gfx.COLOR_YELLOW)
-  text(tostring(state.session:view().score) .. " POINTS - ENTER YOUR NAME", 114, 47, gfx.COLOR_PEACH)
-  gfx.rect_fill(78, 69, 324, 24, gfx.COLOR_DARK_BLUE)
-  text((state.entry_name or "") .. "_", 88, 73, gfx.COLOR_WHITE)
+  text("NEW HIGH SCORE!", 150, 26, colors.accent)
+  text(tostring(state.session:view().score) .. " POINTS - ENTER YOUR NAME", 114, 47, colors.secondary)
+  gfx.rect_fill(78, 69, 324, 24, colors.panel)
+  text((state.entry_name or "") .. "_", 88, 73, colors.text)
   local letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
   for i = 1, #letters do
     local letter = letters:sub(i, i)
@@ -41,7 +43,7 @@ function NameEntry.draw(state, navigate, save)
     navigate("game", 33)
     save()
   end)
-  text(HighScores.NAME_LIMIT .. " characters / blank name saves as PLAYER", 78, 245, gfx.COLOR_PEACH)
+  text(HighScores.NAME_LIMIT .. " characters / blank name saves as PLAYER", 78, 245, colors.secondary)
 end
 
 return NameEntry

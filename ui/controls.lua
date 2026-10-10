@@ -1,14 +1,19 @@
+local Themes = require("ui.themes")
 local Controls = {}
 local text = require("ui.drawing").text
 
 function Controls.button(state, id, x, y, w, h, label, callback, enabled)
+  local colors = Themes.colors()
   state.buttons[#state.buttons + 1] = { id = id, x = x, y = y, w = w, h = h, callback = callback, enabled = enabled ~= false }
   if label then
-    gfx.rect_fill(x, y, w, h, enabled == false and gfx.COLOR_BROWN or gfx.COLOR_DARK_BLUE)
-    gfx.rect(x, y, w, h, state.focus == id and gfx.COLOR_YELLOW or gfx.COLOR_BROWN)
-    text(label, x + 5, y + math.floor((h - 15) / 2), enabled == false and gfx.COLOR_LIGHT_GRAY or gfx.COLOR_PEACH)
+    gfx.rect_fill(x, y, w, h, enabled == false and colors.disabled or colors.panel)
+    gfx.rect(x, y, w, h, state.focus == id and colors.accent or colors.border)
+    local text_width, text_height = usagi.measure_text(label)
+    text(label, x + math.floor((w - text_width) / 2),
+      y + math.floor((h - text_height) / 2),
+      enabled == false and colors.muted or colors.secondary)
   elseif state.focus == id then
-    gfx.rect(x - 1, y - 1, w + 2, h + 2, gfx.COLOR_YELLOW)
+    gfx.rect(x - 1, y - 1, w + 2, h + 2, colors.accent)
   end
 end
 

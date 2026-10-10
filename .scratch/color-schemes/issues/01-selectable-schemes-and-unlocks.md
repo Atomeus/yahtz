@@ -1,4 +1,4 @@
-﻿# Selectable color schemes and score-based unlocks
+ï»¿# Selectable color schemes and score-based unlocks
 
 Status: needs-triage
 Type: task
@@ -46,3 +46,8 @@ Gameplay bonuses, online accounts, paid cosmetics, and changes to scoring rules.
 ## Comments
 
 - User approved keeping this as a future todo, not implementing it now.
+
+- Implemented the selectable-theme proof of concept: all four schemes available,
+  shared semantic color roles, live preview, saved selection, and safe fallback.
+  Contrast checks and lifecycle coverage added. Score thresholds, permanent
+  unlocks, and unlock notifications remain future work; this ticket stays open.

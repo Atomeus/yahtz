@@ -10,7 +10,7 @@ Mouse controls cover every action. Keyboard and gamepad direction actions move t
 
 The board labels rows R1?R5 and columns C1?C5. Ledger entries spell out the matching Row or Col, category or joker bonus, and points; new entries also record their turn (T1?T5). During scoring, the matching board label is highlighted. Each complete row and column pays once, using its highest-value qualifying category. Straights ignore spatial order. Score events appear in sequence and count the displayed total up as each line and bonus pays; **Speed through** skips the wait, while **Earlier / Later** lets you inspect the complete event history on the results screen. **Main menu** returns to the leaderboard; **Play now** begins a fresh board and joker choice. Existing boards remain available through **Continue** or **View results**.
 
-Use **Motion** to switch between short dice bounces and reduced motion. Both preserve all scoring information. Dry dice clacks and rising score tones use generated WAV assets; sound volume is available in the pause menu.
+Use **Motion** on the main menu to switch between short dice bounces and reduced motion. Both preserve all scoring information. Dry dice clacks and rising score tones use generated WAV assets; sound volume is available in the pause menu.
 
 The game saves automatically when choosing a joker and confirming a turn. Returning during an unfinished turn restores its original dice and consumables, discarding unconfirmed rerolls, placements and Adjustments. Repeating the same actions produces the same dice. A completed board resumes at its results screen. Motion preference and score history are saved too.
 
@@ -32,3 +32,29 @@ Run python tools/test.py to execute the domain suites and the application
 lifecycle integration test. The latter simulates input and persistence through
 the engine callbacks; visual rendering and physical gamepad behavior still
 require a check in Usagi.
+
+## Color themes
+
+Choose **Colors** from the main menu to select Classic Table, Midnight,
+Plum Velvet, or Golden Hour. All four are available immediately. The preview
+shows the selected table, dice, and score colors; selection saves automatically.
+The choice applies across menus, gameplay, name entry, and score animation.
+Older or unknown saved theme IDs fall back to Classic.
+
+Themes use only the engine's default palette, with dark surfaces, readable
+text, dark pips on light dice, and visible focus outlines. Contrast tests
+verify text and pip pairs at 4.5:1 or higher and control borders/focus at
+3:1 or higher against the default palette. Future score-based unlocks are
+tracked separately; this proof of concept has no locked themes.
+
+During a board, use **Colors** in the header, then **Back to game**.
+Changing colors preserves held dice, rerolls, unconfirmed placements,
+Adjustments, undo history, and the selected die. Scoring animation pauses
+while the Colors screen is open and continues when returning. Theme choices
+still save using the existing turn-boundary persistence rules.
+
+The in-game header aligns **Colors** with the clickable active joker name.
+Select the joker name to read its rules and an example, then **Back to game**
+(or the undo/back action) to close. Scoring pauses while reading. The Motion
+preference is available on the main menu, keeping gameplay controls focused
+on the board.

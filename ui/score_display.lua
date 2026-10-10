@@ -1,7 +1,9 @@
+local Themes = require("ui.themes")
 local ScoreDisplay = {}
 local COUNT_DURATION = 0.65
 
 function ScoreDisplay.draw(state, view)
+  local colors = Themes.colors()
   local score, rotation, scale = view.score, 0, 1
   if view.phase == "resolving" then
     -- The session total is committed already; animate only its presentation.
@@ -32,9 +34,9 @@ function ScoreDisplay.draw(state, view)
   local width, height = usagi.measure_text(label)
   local x, y = 242 - width * (scale - 1) / 2, 20 - height * (scale - 1) / 2
   if scale > 1 then
-    gfx.text_ex(label, x + 1, y + 1, scale, rotation, gfx.COLOR_DARK_BLUE, 1)
+    gfx.text_ex(label, x + 1, y + 1, scale, rotation, colors.panel, 1)
   end
-  gfx.text_ex(label, x, y, scale, rotation, gfx.COLOR_YELLOW, 1)
+  gfx.text_ex(label, x, y, scale, rotation, colors.accent, 1)
 end
 
 return ScoreDisplay
