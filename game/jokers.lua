@@ -59,6 +59,21 @@ local JOKERS = {
     "Each face matching the center adds +5, once.",
     "Only above, below, left, and right count; max +20.",
   }},
+  {id = "alternator", name = "ALTERNATOR", text = "Odd/even transition: +5", hint = "Switch parity, build a pattern.", details = {
+    "Each adjacent odd/even transition adds +5.",
+    "Pairs overlap; either direction counts.",
+    "Example: 1,2,3,4,5 adds +20 per line.",
+  }},
+  {id = "variety_show", name = "VARIETY SHOW", text = "+10 per different category", hint = "Collect combinations, not repeats.", details = {
+    "At completion, earn +10 per different category.",
+    "Count ordinary row and column scoring categories.",
+    "Each category counts once; maximum +70.",
+  }},
+  {id = "double_feature", name = "DOUBLE FEATURE", text = "Row + column in a turn: +20", hint = "Time your lines to finish together.", details = {
+    "Complete a row and a column in one turn: +20.",
+    "Only newly completed lines count; pay once per turn.",
+    "The final turn qualifies too; more lines add no extra.",
+  }},
 }
 
 function JOKERS.get(id)

@@ -135,11 +135,9 @@ function Session:preview(die, cell)
     result.events[#result.events + 1] = {kind = "joker", joker = s.joker, scope = "board", points = result.board_bonus}
     result.points = result.points + result.board_bonus
   end
-  if s.joker == "thrifty" then
-    result.turn_bonus = (3 - s.rolls_used) * 5
-    if result.turn_bonus > 0 then
-      result.events[#result.events + 1] = {kind = "joker", joker = s.joker, points = result.turn_bonus}
-    end
+  result.turn_bonus = Scoring.turn_bonus(result.lines, s.joker, s.rolls_used)
+  if result.turn_bonus > 0 then
+    result.events[#result.events + 1] = {kind = "joker", joker = s.joker, points = result.turn_bonus}
   end
   result.points = result.points + result.turn_bonus
   result.event_bonus = 0

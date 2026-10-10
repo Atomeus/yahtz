@@ -2,7 +2,7 @@
 
 A small spatial dice game for Usagi 1.2.0. Run `usagi dev` from this directory (or `usagi run .`). The logical canvas is 480 x 270 pixels.
 
-Each new board deals three distinct random jokers from a roster of twelve; choose
+Each new board deals three distinct random jokers from a roster of fifteen; choose
 one to keep for all five turns. Returning to a saved board preserves its chosen
 joker and deterministic dice. The draft uses its own random generator and stays
 fixed while the selection screen is open.
@@ -21,12 +21,21 @@ fixed while the selection screen is open.
 | Step Up | +5 for each adjacent pair differing by exactly 1, including overlapping zigzags |
 | Opposites | +5 for each adjacent pair totaling 7, including overlapping pairs |
 | Star | At board completion, +5 for each orthogonal neighbor matching the center, up to +20 |
+| Alternator | +5 per adjacent odd/even transition in a line, up to +20 |
+| Variety Show | At board completion, +10 per distinct ordinary row/column scoring category, up to +70 |
+| Double Feature | +20 per turn completing at least one new row and one new column, once per turn |
 
 New joker values are initial playtest values. Bonuses count toward the final
 score, leaderboard, and color unlocks. Crossroads diagonal payouts and Star's
 board bonus appear in previews and the ledger and count toward joker contribution.
 Strongest line continues to compare rows and columns, including their line bonuses.
 Select the active joker name during play to read its rules and an example.
+
+Variety Show counts the highest-value ordinary category awarded to each line;
+repeated categories and event multipliers add no extra categories. Double Feature
+includes the final turn, requires both directions in the same confirmation, and
+does not pay extra for additional lines. Its earned contribution persists across
+turn-boundary saves. These bonuses also count toward color unlocks.
 
 The main menu shows the five highest local scores. Choose **Play now**, choose a joker, then fill the 5 x 5 board over five turns. Each turn starts with five dice and allows two rerolls. Click dice to hold them, then choose **Place dice** to end rolling early; the final roll enters placement automatically. Select an unplaced die and an empty board cell. The next unplaced die is selected automatically. Click a die placed this turn to pick it up again. Earlier turns stay fixed. The tray marks dice READY or PLACED during placement; placed dice appear as dark silhouettes.
 

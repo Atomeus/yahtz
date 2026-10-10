@@ -31,7 +31,7 @@ function Summary.calculate(view)
     end
   end
   result.contribution = result.contribution + Scoring.board_bonus(view.board, view.joker)
-  if view.joker == "thrifty" then result.contribution = view.turn_bonus_total end
+  if view.joker == "thrifty" or view.joker == "double_feature" then result.contribution = view.turn_bonus_total end
   return result
 end
 

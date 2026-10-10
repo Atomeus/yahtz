@@ -1,5 +1,6 @@
 -- Pure scoring of completed lines and board-level joker bonuses.
 local Scoring = {}
+local Lines = require("game.lines")
 
 function Scoring.evaluate(faces, joker)
   assert(type(faces) == "table" and #faces == 5, "a completed line requires five faces")
@@ -52,10 +53,11 @@ function Scoring.evaluate(faces, joker)
     local qualifies = true
     for _, face in ipairs(faces) do if face % 2 ~= parity then qualifies = false end end
     joker_bonus = qualifies and 15 or 0
-  elseif joker == "step_up" or joker == "opposites" then
+  elseif joker == "step_up" or joker == "opposites" or joker == "alternator" then
     for i = 1, 4 do
       if (joker == "step_up" and math.abs(faces[i] - faces[i + 1]) == 1)
-        or (joker == "opposites" and faces[i] + faces[i + 1] == 7) then
+        or (joker == "opposites" and faces[i] + faces[i + 1] == 7)
+        or (joker == "alternator" and faces[i] % 2 ~= faces[i + 1] % 2) then
         joker_bonus = joker_bonus + 5
       end
     end
@@ -64,13 +66,34 @@ function Scoring.evaluate(faces, joker)
 end
 
 function Scoring.board_bonus(board, joker)
-  if joker ~= "star" then return 0 end
+  if joker ~= "star" and joker ~= "variety_show" then return 0 end
   for cell = 1, 25 do if not board[cell] or board[cell] == 0 then return 0 end end
+  if joker == "variety_show" then
+    local categories, total = {}, 0
+    for _, id in ipairs(Lines.ids()) do
+      local category = Scoring.evaluate(Lines.faces(board, id)).category
+      if not categories[category] then categories[category], total = true, total + 10 end
+    end
+    return total
+  end
   local bonus = 0
   for _, cell in ipairs({8, 12, 14, 18}) do
     if board[cell] == board[13] then bonus = bonus + 5 end
   end
   return bonus
+end
+
+function Scoring.turn_bonus(lines, joker, rolls_used)
+  if joker == "thrifty" then return (3 - rolls_used) * 5 end
+  if joker == "double_feature" then
+    local row, column = false, false
+    for _, line in ipairs(lines) do
+      local direction = Lines.decode(line.id)
+      row, column = row or direction == "row", column or direction == "column"
+    end
+    return row and column and 20 or 0
+  end
+  return 0
 end
 
 return Scoring

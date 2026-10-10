@@ -13,7 +13,7 @@ for seed = 1, 200 do
     unique[id], seen[id] = true, true
   end
 end
-assert(#Jokers == 12)
+assert(#Jokers == 15)
 for _, joker in ipairs(Jokers) do assert(seen[joker.id], "Every joker must be reachable in a draft") end
 assert(table.concat(Jokers.deal(1)) ~= table.concat(Jokers.deal(2)))
 
@@ -28,6 +28,9 @@ local examples = {
   {"step_up", {1,2,4,5,6}, 15}, {"step_up", {6,6,6,6,6}, 0},
   {"opposites", {1,6,1,6,1}, 20}, {"opposites", {6,1,6,1,6}, 20},
   {"opposites", {2,5,3,4,6}, 10}, {"opposites", {6,6,6,6,6}, 0},
+  {"alternator", {1,2,3,4,5}, 20}, {"alternator", {2,1,2,1,2}, 20},
+  {"alternator", {1,3,2,4,5}, 10}, {"alternator", {1,3,5,3,1}, 0},
+  {"alternator", {2,4,6,4,2}, 0}, {"alternator", {1,6,1,6,1}, 20},
 }
 for _, example in ipairs(examples) do
   local faces = table.concat(example[2])
@@ -37,10 +40,11 @@ for _, example in ipairs(examples) do
   assert(table.concat(example[2]) == faces)
 end
 
--- Worked all-ones boards cover attribution, one-time events, and reloads for all twelve jokers.
+-- Worked all-ones boards cover attribution, one-time events, and reloads for every joker.
 local totals = {pair_pay = 600, short_run = 500, thrifty = 550, crossroads = 600,
   little_ones = 750, bookends = 600, rainbow = 500, odd_todd = 650,
-  even_steven = 500, step_up = 500, opposites = 500, star = 520}
+  even_steven = 500, step_up = 500, opposites = 500, star = 520,
+  alternator = 500, variety_show = 510, double_feature = 520}
 for _, joker in ipairs(Jokers) do
   local game, line_count, star_events = Session.new(joker.id, 1), 0, 0
   for turn = 1, 5 do
@@ -105,4 +109,41 @@ for _, cell in ipairs({8,12,14,18}) do star_board[cell] = 1 end
 assert(Scoring.board_bonus(star_board, "star") == 0, "Diagonal matches must not count")
 star_board[1] = 0
 assert(Scoring.board_bonus(star_board, "star") == 0, "Star requires a completed board")
-print("twelve-joker drafts, worked bonuses, full-board attribution, diagonal score-once and Star passed")
+-- Variety Show counts the categories actually selected by ordinary scoring, once each.
+local varied_board = {
+  1,2,3,4,5,
+  1,1,1,1,1,
+  2,2,2,3,3,
+  6,6,6,6,5,
+  1,2,2,4,6,
+}
+assert(Scoring.board_bonus(varied_board, "variety_show") == 60)
+varied_board[25] = 0
+assert(Scoring.board_bonus(varied_board, "variety_show") == 0)
+assert(Scoring.turn_bonus({}, "double_feature", 1) == 0)
+assert(Scoring.turn_bonus({{id = "row1"}, {id = "row2"}}, "double_feature", 1) == 0)
+assert(Scoring.turn_bonus({{id = "column1"}, {id = "diagonal1"}}, "double_feature", 1) == 0)
+assert(Scoring.turn_bonus({{id = "row1"}, {id = "column1"}, {id = "column2"}}, "double_feature", 3) == 20)
+
+-- Coordinate a row and column on turn two, then reload and verify they cannot pay again.
+local arranged = Session.new("double_feature", 1):snapshot()
+arranged.objectives = nil -- Keep this worked example independent of event rewards.
+arranged.turn, arranged.dice = 2, {1,1,1,1,1}
+for _, cell in ipairs({1,2,3,6,11}) do arranged.board[cell] = 1 end
+local double = Session.resume(arranged)
+double:begin_placement()
+for die, cell in ipairs({4,5,16,21}) do double:place(die, cell) end
+local preview = double:preview()
+assert(#preview.lines == 2 and preview.turn_bonus == 20 and preview.points == 120)
+assert(double:view().turn_bonus_total == 0 and double:snapshot().turn_bonus_total == 0)
+double:place(5, 25)
+local committed_preview = double:preview()
+assert(double:confirm() and not double:confirm())
+local reloaded = Session.resume(double:snapshot())
+assert(reloaded:view().turn_bonus_total == 20 and reloaded:view().score == committed_preview.total)
+reloaded:begin_placement()
+assert(reloaded:preview().turn_bonus == 0, "Previously scored lines do not trigger Double Feature")
+local legacy_double = {board = {}, joker = "double_feature"}
+for cell = 1, 25 do legacy_double.board[cell] = 1 end
+assert(Summary.calculate(legacy_double).contribution == nil, "Missing turn history must not be guessed")
+print("fifteen-joker drafts, worked bonuses, attribution, diagonal score-once and completion/turn bonuses passed")
